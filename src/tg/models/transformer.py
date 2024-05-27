@@ -79,19 +79,7 @@ class Transformer(nn.Module):
             x = ff_layer(x)
         return x
 
-class BoundedActivation(nn.Module):
-    def __init__(self, label_dim, 
-                 a_values = [0, -15, 0, -15, 0, -15, 0, 0, -15, 0, 0, -15, 0, 0, -15, 0], 
-                 b_values = [90, 15 , 90, 15, 90, 15, 110, 90, 15, 110, 90, 15, 110, 90, 15, 110]):
-        super(BoundedActivation, self).__init__()
-        assert len(a_values) == len(b_values) == label_dim, "Length of a_values and b_values must be equal and equal to label_dim"
-        self.a_values = nn.Parameter(torch.Tensor(a_values).view(1, -1))
-        self.b_values = nn.Parameter(torch.Tensor(b_values).view(1, -1))
-        self.act = nn.Sigmoid()
 
-    def forward(self, x):
-        return self.act(x) * (self.b_values - self.a_values) + self.a_values
-    
 class VViT(nn.Module):
     def __init__(self, *, image_size, image_patch_size, frames, frame_patch_size, num_classes, dim, depth, heads, mlp_dim, pool = 'cls', channels = 3, dim_head = 64, dropout = 0., emb_dropout = 0.):
         super().__init__()
@@ -122,11 +110,10 @@ class VViT(nn.Module):
         self.pool = pool
         self.to_latent = nn.Identity()
 
-        self.decoder = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, num_classes),
-            # BoundedActivation(num_classes)
-        )
+        # self.decoder = nn.Sequential(
+        #     nn.LayerNorm(dim),
+        #     nn.Linear(dim, num_classes),
+        # )
 
     def forward(self, x):
         #  input x: (batch_size, frames, C)
@@ -146,7 +133,7 @@ class VViT(nn.Module):
         x = x.mean(dim = 1) if self.pool == 'mean' else x[:, 0]
 
         x = self.to_latent(x)
-        return self.decoder(x)
+        return x
     
     def load_pretrained(self, path):
 
@@ -165,9 +152,9 @@ def make_vvit(cfg):
     return VViT(
         image_size = 4,
         image_patch_size = 2,
-        frames = cfg.DATA.SEGMENT_LENGTH,
+        frames = 200,
         frame_patch_size = 4,
-        num_classes = len(cfg.DATA.LABEL_COLUMNS),
+        num_classes = 16,
         dim = 128,
         depth = 4,
         heads = 4,
@@ -185,60 +172,14 @@ def vis_atten(module, input, output):
     
 
 if __name__ == "__main__":
-    from hpe.config import cfg
-    model = make_vvit(cfg)
-    # register hook on attention module
-    model.transformer.layers[-1][0].attend.register_forward_hook(vis_atten)
-    print(model)
+
+    model = make_vvit(cfg=None)
     # Generate random input data
 
     N = 2  # Number of training examples
-    S = 150   # Sequence length
+    S = 200   # Sequence length
     C = 16   # Number of channels
     input_data = torch.randn(N, S, C)
-    model.eval()
     out = model(input_data)
     
     print(out.shape)
-
-    #  plot attention
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import numpy as np
-    sns.set()
-    attn_before_softmax = attn_before_softmax[0].squeeze(0)[0,:,0,1:].mean(axis=0)
-    attn_after_softmax = attn_after_softmax[0].squeeze(0)[0,:,0,1:].mean(axis=0)
-
-    # reshape to 4, 125
-    attn_before_softmax = attn_before_softmax.reshape(-1, 75)
-    # attn_after_softmax = attn_after_softmax.reshape(4, 125)
-
-    plt.figure(figsize=(10, 5))
-    # plt.grid(False)
-
-    plt.subplot(1, 2, 1)
-    plt.imshow(attn_before_softmax, aspect='auto', cmap='inferno')
-    plt.title('Attention before softmax')
-
-    # interpolate to shape 16,250 with nearest interpolation
-    # attn_before_softmax = np.repeat(attn_before_softmax, 2, axis=0)
-    # attn_before_softmax = np.repeat(attn_before_softmax, 2, axis=1)
-    # attn_before_softmax = np.repeat(attn_before_softmax, 2, axis=2)
-
-    #  interpolate using torch
-    attn_before_softmax_inter = F.interpolate(attn_before_softmax.unsqueeze(0).unsqueeze(0), scale_factor=(4, 2), mode='nearest').numpy()
-
-    plt.subplot(1, 2, 2)
-    plt.imshow(attn_before_softmax_inter.reshape(-1,150), aspect='auto', cmap='inferno')
-    plt.title('Attention before softmax')
-
-    # # plot input data
-    # plt.subplot(1, 2, 2)
-    # plt.imshow(input_data[0,:,:].reshape(16,150), aspect='auto', cmap='hot')
-    #  remove grid
-    # fig, axs = plt.subplots(1, attn_before_softmax.shape[0], figsize=(10, 10))
-    # for i in range(attn_before_softmax.shape[0]):
-    #     axs[i].imshow(attn_before_softmax[i,:].reshape(4, 125), aspect='auto')
-    #     axs[i].set_title(f'Attention before softmax for head {i}')
-    
-    plt.show()
