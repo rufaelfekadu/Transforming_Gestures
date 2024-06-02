@@ -10,8 +10,8 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import FastICA
 from sklearn.preprocessing import LabelEncoder
 
-from tg.utils.data import read_emg_v1, read_leap, build_emg_columns, build_leap_columns, strided_array
-from tg.config import cfg
+from src.tg.utils.data import read_emg_v1, read_leap, build_emg_columns, build_leap_columns, strided_array
+from src.tg.config import cfg
 
 def read_dirs(data_path):
 

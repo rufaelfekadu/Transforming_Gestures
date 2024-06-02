@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import os
 from tqdm import tqdm
-from tg.utils.data import read_dirs, train_test_gesture_split, strided_array, train_test_split_by_session
-from tg.data.transforms import JitterTransform, FrequencyTranform, RMSTransform, NormalizeTransform
+from ..utils.data import read_dirs, train_test_gesture_split, strided_array, train_test_split_by_session
+from ..data.transforms import JitterTransform, FrequencyTranform, RMSTransform, NormalizeTransform
 
 
 class EmgDataset(Dataset):

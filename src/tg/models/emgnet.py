@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import time
-from tg.models.transformer import VViT, make_vvit
+from ..models.transformer import VViT, make_vvit
 
 
 class MLP(nn.Module):
