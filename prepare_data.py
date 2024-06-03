@@ -136,7 +136,7 @@ def prepare_data(cfg):
     seq_len = cfg.DATA.SEGMENT_LENGTH
     stride = cfg.DATA.STRIDE
 
-    for edf_file, csv_file in tqdm(zip(*read_dirs(cfg.DATA.PATH))):
+    for edf_file, csv_file in tqdm(zip(*read_dirs(cfg.DATA.DATA_DIR))):
         file_name = ".npz"
         np_file = os.path.splitext(edf_file)[0] + file_name
         if os.path.isfile(np_file):
@@ -154,7 +154,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # merge config file
-    cfg.merge_from_file(args.config)
+    if os.path.exists(args.config):
+        cfg.merge_from_file(args.config)
     cfg.merge_from_list(args.opts)
 
 
