@@ -17,7 +17,7 @@ _C.MODEL.IN_CHANNELS = 1
 _C.MODEL.PATCH_SIZE = 2
 _C.MODEL.INPUT_SIZE = 4
 _C.MODEL.FRAMES = 150
-_C.MODEL.FRAME_PATCHES = 75
+_C.MODEL.FRAME_PATCHES = 4
 
 _C.MODEL.TRANSFORMER = CN()
 _C.MODEL.TRANSFORMER.N_LAYERS = 4
@@ -35,7 +35,7 @@ _C.MODEL.TRANSFORMER.CHANNELS = 1
 # -----------------------------------------------------------------------------
 _C.DATA = CN()
 _C.DATA.NAME = "emgleap"
-_C.DATA.DATA_DIR = "data/"
+_C.DATA.PATH = "data/"
 _C.DATA.SEGMENT_LENGTH = 150
 _C.DATA.STRIDE = 1
 _C.DATA.LABEL_COLUMNS = []
