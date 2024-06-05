@@ -31,12 +31,35 @@ This repository contains code for transforming gestures. Follow the steps below 
 ## Usage
 
 1. Prepare the data:
+    make sure the dataset folder is organised in the following manner
 
     ```bash
-    python prepare_data.py
+    .
+    ├── dataset
+    │   ├── 003
+    │   │   ├── S1
+    |   |   |   ├── P1
+    |   |   |   |   ├── fpe_pos1_SSS_S1_rep0_BT_full.csv
+    |   |   |   |   ├── fpe_pos1_SSS_S1_rep0_BT_full.csv
+    |   |   |   |   └── log.json
+    |   |   |   ├── P2
+    |   |   |   |   ├── fpe_pos2_SSS_S1_rep0_BT_full.csv
+    |   |   |   |   ├── fpe_pos2_SSS_S1_rep0_BT_full.csv
+    |   |   |   |   └── log.json
+    |   |   |   ├── ...
+    |   |   └── └── P4
+    │   ├── ...
+    |   └── 005
+    |
     ```
 
-    This script will preprocess the data and prepare it for training.
+    Then run the following command to prepare the data:
+
+    ```bash
+    python prepare_data.py --DATA.PATH path/to/dataset
+    ```
+
+    This script will preprocess the data and prepare it for training. An .npz files will be created as a reuslt of this processes.
 
 2. Train the model:
 
