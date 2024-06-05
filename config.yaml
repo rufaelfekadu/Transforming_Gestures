@@ -1,0 +1,5 @@
+DATA:
+  PATH: dataset/emgleap
+  EXP_SETUP_PATH: experiments.json
+  SEGMENT_LENGTH: 200
+  STRIDE: 200

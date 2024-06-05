@@ -1,10 +1,13 @@
-from tg.config import cfg
-from tg.models import EmgNet, build_model, build_optimiser
-from tg.data import build_dataloaders
-from tg.loss import build_loss
-from tg.utils.misc import set_seed, setup_logger, AverageMeter
+from hpe.config import cfg
+from hpe.models import EmgNet, build_model, build_optimiser
+from hpe.data import build_dataloaders
+from hpe.loss import build_loss
+from hpe.utils.misc import set_seed, setup_logger, AverageMeter
 
+import os
 import argparse
+import torch
+from tabulate import tabulate
 
 
 def main(cfg):
@@ -13,7 +16,7 @@ def main(cfg):
     device = "cpu"
 
     #  setup logger
-    logger = setup_logger(cfg.LOG_DIR)
+    logger = setup_logger(cfg)
 
     # build dataset
     dataloaders = build_dataloaders(cfg)
@@ -23,11 +26,11 @@ def main(cfg):
 
     # build criterion and optimiser
     criterions = build_loss(cfg)
-    optimiser = build_optimiser(cfg)
+    optimiser, scheduler = build_optimiser(cfg, model)
 
 
     # train
-    train(cfg, model, dataloaders['train'], dataloaders['val'], optimiser, criterions, logger, device)
+    train(cfg, model, dataloaders['train'], dataloaders['val'], optimiser, scheduler, criterions, logger, device)
 
     # test
     test_loss = test(model, dataloaders['test'], criterions[0], device)
@@ -35,18 +38,37 @@ def main(cfg):
 
     pass
 
-def train(cfg, model, train_loader, val_loader, optimiser, criterions, logger, device='cpu'):
+def train(cfg, model, train_loader, val_loader, optimiser, scheduler, criterions, logger, device='cpu'):
 
-    epochs = cfg.SOLVER.EPOCHS
-    scheduler = None
+    epochs = cfg.SOLVER.NUM_EPOCHS
+    best_val_loss = float('inf')
+    epoch_no_improve = 0
+    early_stop = False
+
+    #  define the headers
+    headers = ['Epoch', 'Total Loss', 'TF Loss', 'Pred Loss', 'Val Loss']
 
     for i in range(epochs):
-        train_metrics = train_epoch(model, train_loader, optimiser, scheduler, criterions, device)
-        logger.info(train_metrics)
-        val_metrics = test(model, val_loader, criterions)
-        logger.info(val_metrics)
 
+        train_metrics = train_epoch(model, train_loader, optimiser, scheduler, criterions, device)
+        val_metrics = test(model, val_loader, criterions[0])
+        logger.info(tabulate([[i, *train_metrics, val_metrics.avg]], headers=headers))
+
+        if val_metrics.avg < best_val_loss:
+            best_val_loss = val_metrics.avg
+            save_path = os.path.join(cfg.SOLVER.SAVE_DIR, 'best_model_EXP_{}.pth'.format(cfg.DATA.EXP_SETUP))
+            torch.save(model.state_dict(), save_path)
+        else:
+            epoch_no_improve += 1
+            if epoch_no_improve > cfg.SOLVER.PATIENCE:
+                logger.info("Early stopping at epoch {}".format(i))
+                break
+
+        scheduler.step(val_metrics.avg)
+        
 def train_epoch(model, train_loader,optimiser, scheduler, criterions, device):
+
+    model.train()
 
     total_loss = AverageMeter()
     tf_loss = AverageMeter()
@@ -55,7 +77,7 @@ def train_epoch(model, train_loader,optimiser, scheduler, criterions, device):
 
     for batch in train_loader:
 
-        input_t, input_f, label, gesture = batch
+        input_t, _, input_f, _, _, label, gesture = batch
         input_t, input_f = input_t.to(device), input_f.to(device)
         n = input_t.shape[0]
 
@@ -64,14 +86,13 @@ def train_epoch(model, train_loader,optimiser, scheduler, criterions, device):
         optimiser.zero_grad()
 
         # compute loss
-        l_pred = criterions[0](label, pred)
+        _, l_pred = criterions[0](pred, label)
         l_tf = criterions[1](z_t, z_f)
         l_total = l_pred + lamb*l_tf
 
         # optimisation
-        l_total.backwards()
+        l_total.backward()
         optimiser.step()
-        scheduler.step(l_total)
 
         # update average meters
         total_loss.update(l_total, n)
@@ -83,16 +104,17 @@ def train_epoch(model, train_loader,optimiser, scheduler, criterions, device):
 def test(model, loader, criterion, device='cpu'):
 
     loss = AverageMeter()
+    model.eval()
+    with torch.no_grad():
+        for batch in loader:
+            input_t, _, input_f, _, _, label, gesture = batch
 
-    for batch in loader:
-        input_t, input_f, label, gesture = batch
+            input_t, input_f = input_t.to(device), input_f.to(device)
+            pred = model(input_t, input_f, return_proj=False)
 
-        input_t, input_f = input_t.to(device), input_f.to(device)
-        pred = model(input_t, input_f, return_proj=False)
+            l = criterion(pred, label)
 
-        l = criterion(label, pred)
-
-        loss.update(l, input_t.shape[0])
+            loss.update(l[1], input_t.shape[0])
 
     return loss
 
@@ -105,8 +127,11 @@ if __name__ == '__main__':
 
     cfg.merge_from_file(args.config)
     cfg.merge_from_list(args.opts)
-    cfg.freeze()
+    # cfg.freeze()
 
+    cfg.SOLVER.SAVE_DIR = os.path.join(cfg.SOLVER.SAVE_DIR, cfg.DATA.EXP_SETUP)
+    os.makedirs(cfg.SOLVER.SAVE_DIR, exist_ok=True)
+    
     #  set seed
     set_seed(cfg.SEED)
 

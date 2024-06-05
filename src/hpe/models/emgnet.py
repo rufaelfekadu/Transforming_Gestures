@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import time
-from tg.models.transformer import VViT, make_vvit
+from hpe.models.transformer import VViT, make_vvit
 
 
 class MLP(nn.Module):
@@ -44,17 +44,16 @@ class BoundedActivation(nn.Module):
     
 
 class EmgNet(nn.Module):
-    def __init__(self, proj_dim, seq_length, output_size, **kwargs):
+    def __init__(self, proj_dim, output_size, **kwargs):
         super(EmgNet, self).__init__()
         self.proj_dim = proj_dim
-        self.seq_length = seq_length
         self.encoder_t = VViT(**kwargs)
         self.encoder_f = VViT(**kwargs)
 
         self.projector_t = SimCLRProjector(self.encoder_t.d_model, proj_dim)
         self.projector_f = SimCLRProjector(self.encoder_f.d_model, proj_dim)
 
-        self.decoder = MLP(self.d_model*2, output_size)
+        self.decoder = MLP(self.encoder_t.d_model+self.encoder_f.d_model, output_size)
         self.bact = BoundedActivation(label_dim=output_size)
     
     def forward(self, x_t, x_f, return_proj=True):
@@ -82,14 +81,16 @@ if __name__ == "__main__":
     N = 2
     C = 16
     S = 200
+    from hpe.config import cfg, get_param
+    args = get_param(cfg, 'MODEL')
+    args.update(get_param(cfg, 'TRANSFORMER'))
 
-    model = EmgNet(input_size=C, proj_dim=128, seq_length=S, output_size=16, d_model=128, mlp_dim=2048)
+    model = EmgNet(**args)
     x_t = torch.rand(N, S, C)
     x_f = torch.rand(N, S, C)
 
-    x_t, x_f, z_t, z_f = model(x_t, x_f)
-    print(x_t.shape, x_f.shape, z_t.shape, z_f.shape)
-    print(model)
+    out, z_t, z_f = model(x_t, x_f)
+    print(out.shape, z_t.shape, z_f.shape)
 
     # count the number of parameters
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)

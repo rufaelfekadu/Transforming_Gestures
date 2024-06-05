@@ -18,3 +18,8 @@ env/
 
 #  ds_store
 .DS_Store
+
+# dataset and logs
+dataset/
+logs/
+output/

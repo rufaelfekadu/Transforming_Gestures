@@ -81,7 +81,7 @@ class Transformer(nn.Module):
 
 
 class VViT(nn.Module):
-    __acceptable_attributes__ = ["input_size", "input_patch_size", "frames", 
+    __acceptable_attributes__ = ["input_size", "patch_size", "frames", 
                                  "frame_patch_size", "num_classes", "d_model", "num_layers", 
                                  "num_heads", "mlp_dim", "pool" , "channels" , "dim_head", 
                                  "att_dropout" , "emb_dropout"]
@@ -91,13 +91,13 @@ class VViT(nn.Module):
         [self.__setattr__(k, kwargs.get(k)) for k in self.__acceptable_attributes__]
 
         image_height, image_width = pair(self.input_size)
-        patch_height, patch_width = pair(self.input_patch_size)
+        patch_height, patch_width = pair(self.patch_size)
 
         assert image_height % patch_height == 0 and image_width % patch_width == 0, 'Image dimensions must be divisible by the patch size.'
         assert self.frames % self.frame_patch_size == 0, 'Frames must be divisible by frame patch size'
 
         num_patches = (image_height // patch_height) * (image_width // patch_width) * (self.frames // self.frame_patch_size)
-        patch_dim = self.channels * patch_height * patch_width * self.frame_patch_size
+        patch_dim = patch_height * patch_width * self.frame_patch_size
 
         assert self.pool in {'cls', 'mean'}, 'pool type must be either cls (cls token) or mean (mean pooling)'
 
@@ -155,8 +155,10 @@ class VViT(nn.Module):
 
 
 def make_vvit(cfg):
-    from tg.config import get_model_param
-    args = get_model_param(cfg)
+    from hpe.config import get_param
+    args = get_param(cfg, 'MODEL')
+    args.update(get_param(cfg, 'TRANSFORMER'))
+    print(args)
     return VViT(**args)
 
 def vis_atten(module, input, output):
@@ -167,8 +169,8 @@ def vis_atten(module, input, output):
     
 
 if __name__ == "__main__":
-
-    model = make_vvit(cfg=None)
+    from hpe.config import cfg
+    model = make_vvit(cfg)
     # Generate random input data
 
     N = 2  # Number of training examples

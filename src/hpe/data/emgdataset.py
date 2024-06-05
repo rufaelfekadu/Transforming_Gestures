@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import os
 from tqdm import tqdm
-from tg.utils.data import read_dirs, train_test_gesture_split, strided_array, train_test_split_by_session
-from tg.data.transforms import JitterTransform, FrequencyTranform, RMSTransform, NormalizeTransform
+from hpe.utils.data import read_dirs, train_test_gesture_split, strided_array, train_test_split_by_session
+from hpe.data.transforms import JitterTransform, FrequencyTranform, RMSTransform, NormalizeTransform
 
 
 class EmgDataset(Dataset):
@@ -37,8 +37,8 @@ class EmgDataset(Dataset):
                 continue
 
         if len(merged_data) == 0:
-            print(f'No data found in {cfg.DATA.PATH}')
-            return
+            raise FileNotFoundError(f'No data found in {cfg.DATA.PATH}')
+            # return
         merged_data = np.concatenate(merged_data, axis=0)
         
         self.label_columns = data['label_columns']
@@ -211,23 +211,26 @@ def build_dataloaders(cfg, pretrain=True):
     # transforms
     transforms_c = Compose([RMSTransform(),
                             NormalizeTransform(norm_type='zscore')])
-    transforms_t = Compose([JitterTransform(scale=cfg.DATA.JITTER_SCALE)])
-    transforms_f = Compose([FrequencyTranform(fs=cfg.DATA.EMG.SAMPLING_RATE, pertub_ratio=cfg.DATA.FREQ_PERTUB_RATIO)])
-
+    # transforms_t = Compose([JitterTransform(scale=cfg.DATA.JITTER_SCALE)])
+    # transforms_f = Compose([FrequencyTranform(fs=cfg.DATA.EMG.SAMPLING_RATE, pertub_ratio=cfg.DATA.FREQ_PERTUB_RATIO)])
+    transforms = (None, None, transforms_c)
 
     data_paths = pretrain_dirs
     try:
         if pretrain:
             pretrain_set = EmgDataset(cfg, data_paths, training_mode='pretrain',
-                                transforms = (transforms_t, transforms_f, transforms_c))
+                                transforms = transforms)
             dataloaders['pretrain'] = torch.utils.data.DataLoader(pretrain_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True, drop_last=True, num_workers=num_workers, persistent_workers=True)
 
     except:
         print('No pretrain data found')
         dataloaders['pretrain'] = None
-    train_set = EmgDataset(cfg, train_dirs, training_mode='hpe', transforms=(transforms_t, transforms_f, transforms_c))
+    train_set = EmgDataset(cfg, train_dirs, training_mode='hpe',
+                            transforms=transforms)
     cfg.DATA.LABEL_COLUMNS = train_set.label_columns.tolist()
     cfg.DATA.NUM_CLASSES = train_set.num_classes
+    cfg.MODEL.FRAMES = train_set.data.shape[1]
+    cfg.MODEL.OUTPUT_SIZE = train_set.label.shape[-1]
 
     rep = np.random.randint(1,5)
 
@@ -276,18 +279,20 @@ def build_dataloader_classification(cfg):
 
     num_workers = cfg.SOLVER.NUM_WORKERS
 
-    dataloaders['pretrain'] = None
+    # dataloaders['pretrain'] = None
     dataloaders['train'] = torch.utils.data.DataLoader(train_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True, num_workers=num_workers, persistent_workers=True, drop_last=True)
     dataloaders['val'] = torch.utils.data.DataLoader(val_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
     dataloaders['test'] = torch.utils.data.DataLoader(test_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
-    dataloaders['test_2'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
+    # dataloaders['test_2'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
     # split test into validation and test
 
     return dataloaders
 
 if __name__ == "__main__":
-    from tg.config import cfg
+    from hpe.config import cfg
 
     # build_dataloaders(cfg)
     dataloaders = build_dataloaders(cfg)
-    print(dataloaders.keys())
+
+    for key in dataloaders.keys():
+        print(key, len(dataloaders[key]))

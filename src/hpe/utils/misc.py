@@ -11,7 +11,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 
 
-def setup_seed(seed):
+
+def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
@@ -20,20 +21,31 @@ def setup_seed(seed):
     torch.backends.cudnn.benchmark = True
     torch.backends.cudnn.deterministic = True
 
-def setup_logger(output_dir):
+def setup_logger(cfg):
     import logging
     import os
+    import datetime
+
+    log_dir = os.path.join(cfg.LOG_DIR, cfg.DATA.EXP_SETUP)
+
+    os.makedirs(log_dir, exist_ok=True)
+
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    # create file handler which logs even debug messages
-    fh = logging.FileHandler(os.path.join(output_dir, 'log.txt'))
+
+    now = datetime.datetime.now()
+    log_path = os.path.join(log_dir, 'log.txt_{}'.format(now.strftime('%Y%m%d_%H%M%S')))
+    
+    fh = logging.FileHandler(log_path, mode='w')
     fh.setLevel(logging.INFO)
+
     # create console handler with a higher log level
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
+
     # create formatter and add it to the handlers
     formatter = logging.Formatter('%(asctime)s - %(message)s')
-    fh.setFormatter(formatter)
+    # fh.setFormatter(formatter)
     ch.setFormatter(formatter)
     # add the handlers to the logger
     logger.addHandler(fh)
@@ -54,7 +66,7 @@ class AverageMeter:
         self.avg = self.total/n
 
     def __str__(self):
-        return self.avg
+        return f'{self.avg}'
     
 def plot_sample(pred, target, label_columns):
 
