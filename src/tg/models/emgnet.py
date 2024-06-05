@@ -31,8 +31,8 @@ class SimCLRProjector(nn.Module):
 
 class BoundedActivation(nn.Module):
     def __init__(self, label_dim, 
-                 a_values = (0, -15, 0, -15, 0, -15, 0, 0, -15, 0, 0, -15, 0, 0, -15, 0),
-                 b_values = (90, 15 , 90, 15, 90, 15, 110, 90, 15, 110, 90, 15, 110, 90, 15, 110)):
+                 a_values = [0, -15, 0, -15, 0, -15, 0, 0, -15, 0, 0, -15, 0, 0, -15, 0], 
+                 b_values = [90, 15 , 90, 15, 90, 15, 110, 90, 15, 110, 90, 15, 110, 90, 15, 110]):
         super(BoundedActivation, self).__init__()
         assert len(a_values) == len(b_values) == label_dim, "Length of a_values and b_values must be equal and equal to label_dim"
         self.a_values = nn.Parameter(torch.Tensor(a_values).view(1, -1))
@@ -44,81 +44,20 @@ class BoundedActivation(nn.Module):
     
 
 class EmgNet(nn.Module):
-    def __init__(self, input_size, proj_dim, d_model, seq_length, output_size, mlp_dim, ):
+    def __init__(self, proj_dim, seq_length, output_size, **kwargs):
         super(EmgNet, self).__init__()
-        # self.proj_dim = proj_dim
-        self.d_model = d_model
+        self.proj_dim = proj_dim
         self.seq_length = seq_length
-        self.encoder_t = VViT(
-                            image_size = 4,
-                            image_patch_size = 2,
-                            frames = seq_length,
-                            frame_patch_size = 4,
-                            num_classes = output_size,
-                            dim = 128,
-                            depth = 4,
-                            heads = 4,
-                            mlp_dim = 2048,
-                            dropout = 0.25,
-                            emb_dropout = 0.5,
-                            channels=1,
-                        )
-        self.encoder_f = VViT(
-                            image_size = 4,
-                            image_patch_size = 2,
-                            frames = seq_length,
-                            frame_patch_size = 4,
-                            num_classes = output_size,
-                            dim = 128,
-                            depth = 4,
-                            heads = 4,
-                            mlp_dim = 2048,
-                            dropout = 0.25,
-                            emb_dropout = 0.5,
-                            channels=1,
-                        )        
-        self.projector_t = SimCLRProjector(self.d_model, proj_dim)
-        self.projector_f = SimCLRProjector(self.d_model, proj_dim)
+        self.encoder_t = VViT(**kwargs)
+        self.encoder_f = VViT(**kwargs)
+
+        self.projector_t = SimCLRProjector(self.encoder_t.d_model, proj_dim)
+        self.projector_f = SimCLRProjector(self.encoder_f.d_model, proj_dim)
 
         self.decoder = MLP(self.d_model*2, output_size)
         self.bact = BoundedActivation(label_dim=output_size)
-    def __init__(self, cfg):
-        super(EmgNet, self).__init__()
-        # self.proj_dim = proj_dim
-        self.d_model = cfg.MODEL.TRANSFORMER.D_MODEL
-        self.seq_length = cfg.MODEL.FRAMES
-        self.encoder_t = VViT(
-                            image_size = cfg.MODEL.INPUT_SIZE,
-                            image_patch_size = cfg.MODEL.PATCH_SIZE,
-                            frames = cfg.MODEL.FRAMES,
-                            frame_patch_size = cfg.MODEL.FRAME_PATCHES,
-                            dim = cfg.MODEL.TRANSFORMER.D_MODEL,
-                            depth = cfg.MODEL.TRANSFORMER.N_LAYERS,
-                            heads = cfg.MODEL.TRANSFORMER.N_HEADS,
-                            mlp_dim = cfg.MODEL.TRANSFORMER.D_FF,
-                            dropout = cfg.MODEL.TRANSFORMER.DROPOUT,
-                            emb_dropout = cfg.MODEL.TRANSFORMER.EMB_DROPOUT,
-                            channels= cfg.MODEL.TRANSFORMER.CHANNELS,
-                        )
-        self.encoder_f = VViT(
-                            image_size = cfg.MODEL.INPUT_SIZE,
-                            image_patch_size = cfg.MODEL.PATCH_SIZE,
-                            frames = cfg.MODEL.FRAMES,
-                            frame_patch_size = cfg.MODEL.FRAME_PATCHES,
-                            dim = cfg.MODEL.TRANSFORMER.D_MODEL,
-                            depth = cfg.MODEL.TRANSFORMER.N_LAYERS,
-                            heads = cfg.MODEL.TRANSFORMER.N_HEADS,
-                            mlp_dim = cfg.MODEL.TRANSFORMER.D_FF,
-                            dropout = cfg.MODEL.TRANSFORMER.DROPOUT,
-                            emb_dropout = cfg.MODEL.TRANSFORMER.EMB_DROPOUT,
-                            channels= cfg.MODEL.TRANSFORMER.CHANNELS,
-                        )
-        self.projector_t = SimCLRProjector(self.d_model, cfg.MODEL.PROJECTION_DIM)
-        self.projector_f = SimCLRProjector(self.d_model, cfg.MODEL.PROJECTION_DIM)
-
-        self.decoder = MLP(self.d_model*2, cfg.MODEL.NUM_CLASSES)
-        self.bact = BoundedActivation(label_dim=cfg.MODEL.NUM_CLASSES)
-    def forward(self, x_t, x_f):
+    
+    def forward(self, x_t, x_f, return_proj=True):
 
         # x_t, x_f = x_t, x_f.permute(0, 2, 1) # (B, C, S)
 
@@ -131,9 +70,11 @@ class EmgNet(nn.Module):
         out = self.decoder(torch.cat((h_t,h_f), dim=1))
         # out = self.bact(out)
 
-
-        # return h_t, h_f, z_t, z_f, out
-        return out, z_t, z_f
+        if return_proj:
+            # return h_t, h_f, z_t, z_f, out
+            return out, z_t, z_f
+        else:
+            return out
     
 if __name__ == "__main__":
 

@@ -20,6 +20,42 @@ def setup_seed(seed):
     torch.backends.cudnn.benchmark = True
     torch.backends.cudnn.deterministic = True
 
+def setup_logger(output_dir):
+    import logging
+    import os
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler(os.path.join(output_dir, 'log.txt'))
+    fh.setLevel(logging.INFO)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(message)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    # add the handlers to the logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    return logger
+
+class AverageMeter:
+    def __init__(self, value=0, count=0, total=0, avg=0):
+        self.count=count
+        self.avg = avg
+        self.total = total
+        self.value = value
+    
+    def update(self, value, n):
+        self.value = value
+        self.total += value
+        self.count += n
+        self.avg = self.total/n
+
+    def __str__(self):
+        return self.avg
+    
 def plot_sample(pred, target, label_columns):
 
     fingers = ['thumb', 'index', 'middle', 'ring', 'pinky']

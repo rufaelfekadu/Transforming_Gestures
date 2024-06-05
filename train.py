@@ -1,133 +1,114 @@
 from tg.config import cfg
-from tg.models import EmgNet
+from tg.models import EmgNet, build_model, build_optimiser
 from tg.data import build_dataloaders
-from tg.utils.misc import setup_seed
+from tg.loss import build_loss
+from tg.utils.misc import set_seed, setup_logger, AverageMeter
+
 import argparse
-import torch
-import os
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-from pytorch_lightning import loggers as pl_loggers
-import pytorch_lightning as pl
-from tg.models.emgnet import EmgNet
-from tg.config import cfg
-from tg.data.emgdataset import build_dataloaders
-from tg.loss.neuroloss import NeuroLoss
-from tg.loss.contrastive import NeuroLoss
-import argparse
-import os
-from tqdm import tqdm
-
-def train_one_epoch(model, dataloader, criterion, optimizer, device):
-    loss_fn = NeuroLoss(metric=cfg.SOLVER.METRIC, keypoints=cfg.DATA.LABEL_COLUMNS)
-    model.train()
-    running_loss = 0.0
-    for S in tqdm(dataloader):
-        (x_t,x_f, labels)= S[0],S[2],S[5]
-        x_t,x_f, labels = x_t.to(device),x_f.to(device), labels.to(device)
-        continue
-        optimizer.zero_grad()
-        outputs = model(x_t,x_f)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-
-    epoch_loss = running_loss / len(dataloader)
-    return epoch_loss
-
-
-def validate(model, dataloader, criterion, device):
-    model.eval()
-    running_loss = 0.0
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for S in dataloader:
-            (x_t, x_f, labels) = S[0], S[2], S[5]
-
-            outputs = model(x_t,x_f)
-            loss = criterion(outputs, labels)
-
-            running_loss += loss.item()
-            _, predicted = torch.max(outputs, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-    epoch_loss = running_loss / len(dataloader)
-    accuracy = 100 * correct / total
-    return epoch_loss, accuracy
 
 
 def main(cfg):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # Initialize model, loss function, and optimizer
-    model = EmgNet(cfg=cfg).to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = getattr(optim,cfg.SOLVER.OPTIMIZER)(model.parameters(), lr=cfg.SOLVER.LR)
+    # setup device
+    device = "cpu"
 
-    # Datasets and dataloaders
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
-    ])
+    #  setup logger
+    logger = setup_logger(cfg.LOG_DIR)
 
-    datasets = build_dataloaders(cfg,True)
+    # build dataset
+    dataloaders = build_dataloaders(cfg)
 
-    # train_loader = DataLoader(datasets['train'], batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True)
-    # val_loader = DataLoader(datasets['validation'], batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False)
+    # build model
+    model = build_model(cfg)
 
-    best_val_loss = float('inf')
-    patience_counter = 0
+    # build criterion and optimiser
+    criterions = build_loss(cfg)
+    optimiser = build_optimiser(cfg)
 
-    for epoch in range(cfg.SOLVER.NUM_EPOCHS):
-        train_loss = train_one_epoch(model, datasets['train'], criterion, optimizer, device)
-        val_loss, val_accuracy = validate(model, datasets['validation'], criterion, device)
 
-        print(f'Epoch {epoch + 1}/{cfg.SOLVER.NUM_EPOCHS}, Train Loss: {train_loss:.4f}, '
-              f'Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_accuracy:.2f}%')
+    # train
+    train(cfg, model, dataloaders['train'], dataloaders['val'], optimiser, criterions, logger, device)
 
-        # Early stopping and checkpoint saving
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            patience_counter = 0
-            checkpoint_path = os.path.join(cfg.SOLVER.LOG_DIR, 'best_model.pth')
-            torch.save(model.state_dict(), checkpoint_path)
-        else:
-            patience_counter += 1
+    # test
+    test_loss = test(model, dataloaders['test'], criterions[0], device)
+    logger.info(test_loss)
 
-        if patience_counter >= cfg.SOLVER.PATIENCE:
-            print("Early stopping triggered.")
-            break
+    pass
 
-    # Load the best model for testing
-    model.load_state_dict(torch.load(checkpoint_path))
+def train(cfg, model, train_loader, val_loader, optimiser, criterions, logger, device='cpu'):
 
-    # Test the model
-    test_loader = DataLoader(datasets['test'], batch_size=cfg.SOLVER.BATCH_SIZE,
-                             shuffle=False)  # Use the same val_dataset for simplicity
-    test_loss, test_accuracy = validate(model, test_loader, criterion, device)
-    print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%')
+    epochs = cfg.SOLVER.EPOCHS
+    scheduler = None
 
+    for i in range(epochs):
+        train_metrics = train_epoch(model, train_loader, optimiser, scheduler, criterions, device)
+        logger.info(train_metrics)
+        val_metrics = test(model, val_loader, criterions)
+        logger.info(val_metrics)
+
+def train_epoch(model, train_loader,optimiser, scheduler, criterions, device):
+
+    total_loss = AverageMeter()
+    tf_loss = AverageMeter()
+    pred_loss = AverageMeter()
+    lamb = 0.25
+
+    for batch in train_loader:
+
+        input_t, input_f, label, gesture = batch
+        input_t, input_f = input_t.to(device), input_f.to(device)
+        n = input_t.shape[0]
+
+        pred, z_t, z_f = model(input_t, input_f)
+
+        optimiser.zero_grad()
+
+        # compute loss
+        l_pred = criterions[0](label, pred)
+        l_tf = criterions[1](z_t, z_f)
+        l_total = l_pred + lamb*l_tf
+
+        # optimisation
+        l_total.backwards()
+        optimiser.step()
+        scheduler.step(l_total)
+
+        # update average meters
+        total_loss.update(l_total, n)
+        tf_loss.update(l_tf, n)
+        pred_loss.update(l_pred, n)
+
+    return total_loss, tf_loss, pred_loss
+
+def test(model, loader, criterion, device='cpu'):
+
+    loss = AverageMeter()
+
+    for batch in loader:
+        input_t, input_f, label, gesture = batch
+
+        input_t, input_f = input_t.to(device), input_f.to(device)
+        pred = model(input_t, input_f, return_proj=False)
+
+        l = criterion(label, pred)
+
+        loss.update(l, input_t.shape[0])
+
+    return loss
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Train a model')
+
+    parser = argparse.ArgumentParser(description='Finger gesture tracking')
     parser.add_argument('--config', type=str, default='config.yaml', help='Path to config file')
     parser.add_argument('--opts', nargs='*', default=[], help='Modify config options using the command-line')
     args = parser.parse_args()
 
     cfg.merge_from_file(args.config)
     cfg.merge_from_list(args.opts)
-    #cfg.freeze()
+    cfg.freeze()
 
     #  set seed
-    setup_seed(cfg.SEED)
+    set_seed(cfg.SEED)
 
 
     main(cfg)
