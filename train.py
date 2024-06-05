@@ -23,8 +23,9 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device):
     model.train()
     running_loss = 0.0
     for inputs, labels in dataloader:
-        inputs, labels = inputs.to(device), labels.to(device)
 
+        inputs, labels = inputs.to(device), labels.to(device)
+        continue
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, labels)

@@ -81,7 +81,7 @@ class Transformer(nn.Module):
 
 
 class VViT(nn.Module):
-    def __init__(self, *, image_size, image_patch_size, frames, frame_patch_size, num_classes, dim, depth, heads, mlp_dim, pool = 'cls', channels = 3, dim_head = 64, dropout = 0., emb_dropout = 0.):
+    def __init__(self, *, image_size, image_patch_size, frames, frame_patch_size, dim, depth, heads, mlp_dim, pool = 'cls', channels = 3, dim_head = 64, dropout = 0., emb_dropout = 0.):
         super().__init__()
         image_height, image_width = pair(image_size)
         patch_height, patch_width = pair(image_patch_size)
@@ -154,7 +154,6 @@ def make_vvit(cfg):
         image_patch_size = 2,
         frames = 200,
         frame_patch_size = 4,
-        num_classes = 16,
         dim = 128,
         depth = 4,
         heads = 4,
