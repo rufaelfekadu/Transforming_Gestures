@@ -6,5 +6,5 @@ setup(
     author='Rufael Marew',
     author_email='rufaelfekadu48@gmail.com',
     description='Hand pose estimation using EMG signals using a double branch transformer architecture',
-    packages=find_packages()
+    packages=find_packages(where='src'),
 )

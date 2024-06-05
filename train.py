@@ -5,6 +5,7 @@ from tg.utils.misc import setup_seed
 import argparse
 import torch
 import os
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -22,12 +23,12 @@ import os
 def train_one_epoch(model, dataloader, criterion, optimizer, device):
     model.train()
     running_loss = 0.0
-    for inputs, labels in dataloader:
-
-        inputs, labels = inputs.to(device), labels.to(device)
+    for S in dataloader:
+        (x_t,x_f, labels)= S[0],S[2],S[5]
+        x_t,x_f, labels = x_t.to(device),x_f.to(device), labels.to(device)
         continue
         optimizer.zero_grad()
-        outputs = model(inputs)
+        outputs = model(x_t,x_f)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -74,18 +75,17 @@ def main(cfg):
         transforms.Normalize((0.5,), (0.5,))
     ])
 
-    train_dataset = build_dataloaders(cfg,True)
-    val_dataset = build_dataloaders(cfg)
+    datasets = build_dataloaders(cfg,True)
 
-    train_loader = DataLoader(train_dataset, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False)
+    # train_loader = DataLoader(datasets['train'], batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True)
+    # val_loader = DataLoader(datasets['validation'], batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False)
 
     best_val_loss = float('inf')
     patience_counter = 0
 
     for epoch in range(cfg.SOLVER.NUM_EPOCHS):
-        train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_loss, val_accuracy = validate(model, val_loader, criterion, device)
+        train_loss = train_one_epoch(model, datasets['train'], criterion, optimizer, device)
+        val_loss, val_accuracy = validate(model, datasets['validation'], criterion, device)
 
         print(f'Epoch {epoch + 1}/{cfg.SOLVER.NUM_EPOCHS}, Train Loss: {train_loss:.4f}, '
               f'Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_accuracy:.2f}%')
@@ -107,7 +107,7 @@ def main(cfg):
     model.load_state_dict(torch.load(checkpoint_path))
 
     # Test the model
-    test_loader = DataLoader(val_dataset, batch_size=cfg.SOLVER.BATCH_SIZE,
+    test_loader = DataLoader(datasets['test'], batch_size=cfg.SOLVER.BATCH_SIZE,
                              shuffle=False)  # Use the same val_dataset for simplicity
     test_loss, test_accuracy = validate(model, test_loader, criterion, device)
     print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%')
@@ -116,10 +116,11 @@ def main(cfg):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a model')
     parser.add_argument('--config', type=str, default='config.yaml', help='Path to config file')
+    parser.add_argument('--opts', nargs='*', default=[], help='Modify config options using the command-line')
     args = parser.parse_args()
 
     cfg.merge_from_file(args.config)
-    cfg.merge_from_list(["MODEL.FRAME_PATCHES",5])
+    cfg.merge_from_list(args.opts)
     #cfg.freeze()
 
     #  set seed

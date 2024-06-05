@@ -6,7 +6,6 @@ _C.NAME = "TG"
 _C.DEBUG = True
 _C.SEED = 42
 
-
 # -----------------------------------------------------------------------------
 # Model
 # -----------------------------------------------------------------------------
@@ -25,14 +24,12 @@ _C.MODEL.TRANSFORMER.N_LAYERS = 4
 _C.MODEL.TRANSFORMER.D_MODEL = 128
 _C.MODEL.TRANSFORMER.PROJECTION_DIM = 128
 
-
 _C.MODEL.TRANSFORMER.N_HEADS = 4
 _C.MODEL.TRANSFORMER.D_FF = 2048
 _C.MODEL.TRANSFORMER.DROPOUT = 0.25
 _C.MODEL.TRANSFORMER.EMB_DROPOUT = 0.5
 _C.MODEL.TRANSFORMER.POOL = "mean"
 _C.MODEL.TRANSFORMER.CHANNELS = 1
-
 
 # -----------------------------------------------------------------------------
 # Dataset
@@ -46,7 +43,7 @@ _C.DATA.LABEL_COLUMNS = []
 
 _C.DATA.NORMALIZE = True
 _C.DATA.ICA = False
-_C.DATA.EXP_SETUP = 'exp1'
+_C.DATA.EXP_SETUP = 'exp49'
 _C.DATA.EXP_SETUP_PATH = 'experiments.json'
 
 # EMG
@@ -62,8 +59,9 @@ _C.DATA.EMG.NORMALIZATION = "max"
 _C.DATA.EMG.NOTCH_FREQ = 50
 _C.DATA.EMG.BUFF_LEN = 0
 _C.DATA.EMG.Q = 30
-
-
+_C.DATA.JITTER_SCALE = 0.1
+_C.DATA.EMG.SAMPLING_RATE=1024
+_C.DATA.FREQ_PERTUB_RATIO=1.0
 # -----------------------------------------------------------------------------
 # Solver
 # -----------------------------------------------------------------------------
@@ -79,5 +77,3 @@ _C.SOLVER.CHECKPOINT = "checkpoint/"
 _C.SOLVER.LOG_DIR = "logs/"
 _C.SOLVER.SAVE_DIR = "output/"
 _C.SOLVER.RESUME = False
-
-

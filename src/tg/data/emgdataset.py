@@ -37,8 +37,9 @@ class EmgDataset(Dataset):
                 continue
 
         if len(merged_data) == 0:
-            print(f'No data found in {cfg.DATA.PATH}')
-            return
+            raise FileNotFoundError(f'No data found in {cfg.DATA.PATH}')
+            # print(f'No data found in {cfg.DATA.PATH}')
+            # return
         merged_data = np.concatenate(merged_data, axis=0)
         
         self.label_columns = data['label_columns']
@@ -244,7 +245,7 @@ def build_dataloaders(cfg, pretrain=True):
 
 
     dataloaders['train'] = torch.utils.data.DataLoader(train_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True, num_workers=num_workers, persistent_workers=True, drop_last=True)
-    dataloaders['val'] = torch.utils.data.DataLoader(val_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
+    dataloaders['validation'] = torch.utils.data.DataLoader(val_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
     dataloaders['test'] = torch.utils.data.DataLoader(test_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
     # dataloaders['test_2'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
     # split test into validation and test
