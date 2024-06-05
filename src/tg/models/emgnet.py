@@ -44,46 +44,20 @@ class BoundedActivation(nn.Module):
     
 
 class EmgNet(nn.Module):
-    def __init__(self, input_size, proj_dim, d_model, seq_length, output_size, mlp_dim, ):
+    def __init__(self, proj_dim, seq_length, output_size, **kwargs):
         super(EmgNet, self).__init__()
         self.proj_dim = proj_dim
-        self.d_model = d_model
         self.seq_length = seq_length
-        self.encoder_t = VViT(
-                            image_size = 4,
-                            image_patch_size = 2,
-                            frames = seq_length,
-                            frame_patch_size = 4,
-                            num_classes = output_size,
-                            dim = 128,
-                            depth = 4,
-                            heads = 4,
-                            mlp_dim = 2048,
-                            dropout = 0.25,
-                            emb_dropout = 0.5,
-                            channels=1,
-                        )
-        self.encoder_f = VViT(
-                            image_size = 4,
-                            image_patch_size = 2,
-                            frames = seq_length,
-                            frame_patch_size = 4,
-                            num_classes = output_size,
-                            dim = 128,
-                            depth = 4,
-                            heads = 4,
-                            mlp_dim = 2048,
-                            dropout = 0.25,
-                            emb_dropout = 0.5,
-                            channels=1,
-                        )        
-        self.projector_t = SimCLRProjector(self.d_model, proj_dim)
-        self.projector_f = SimCLRProjector(self.d_model, proj_dim)
+        self.encoder_t = VViT(**kwargs)
+        self.encoder_f = VViT(**kwargs)
+
+        self.projector_t = SimCLRProjector(self.encoder_t.d_model, proj_dim)
+        self.projector_f = SimCLRProjector(self.encoder_f.d_model, proj_dim)
 
         self.decoder = MLP(self.d_model*2, output_size)
         self.bact = BoundedActivation(label_dim=output_size)
     
-    def forward(self, x_t, x_f):
+    def forward(self, x_t, x_f, return_proj=True):
 
         # x_t, x_f = x_t, x_f.permute(0, 2, 1) # (B, C, S)
 
@@ -96,9 +70,11 @@ class EmgNet(nn.Module):
         out = self.decoder(torch.cat((h_t,h_f), dim=1))
         # out = self.bact(out)
 
-
-        # return h_t, h_f, z_t, z_f, out
-        return out, z_t, z_f
+        if return_proj:
+            # return h_t, h_f, z_t, z_f, out
+            return out, z_t, z_f
+        else:
+            return out
     
 if __name__ == "__main__":
 

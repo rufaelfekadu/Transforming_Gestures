@@ -81,33 +81,39 @@ class Transformer(nn.Module):
 
 
 class VViT(nn.Module):
-    def __init__(self, *, image_size, image_patch_size, frames, frame_patch_size, num_classes, dim, depth, heads, mlp_dim, pool = 'cls', channels = 3, dim_head = 64, dropout = 0., emb_dropout = 0.):
+    __acceptable_attributes__ = ["input_size", "input_patch_size", "frames", 
+                                 "frame_patch_size", "num_classes", "d_model", "num_layers", 
+                                 "num_heads", "mlp_dim", "pool" , "channels" , "dim_head", 
+                                 "att_dropout" , "emb_dropout"]
+    
+    def __init__(self, **kwargs):
         super().__init__()
-        image_height, image_width = pair(image_size)
-        patch_height, patch_width = pair(image_patch_size)
+        [self.__setattr__(k, kwargs.get(k)) for k in self.__acceptable_attributes__]
+
+        image_height, image_width = pair(self.input_size)
+        patch_height, patch_width = pair(self.input_patch_size)
 
         assert image_height % patch_height == 0 and image_width % patch_width == 0, 'Image dimensions must be divisible by the patch size.'
-        assert frames % frame_patch_size == 0, 'Frames must be divisible by frame patch size'
+        assert self.frames % self.frame_patch_size == 0, 'Frames must be divisible by frame patch size'
 
-        num_patches = (image_height // patch_height) * (image_width // patch_width) * (frames // frame_patch_size)
-        patch_dim = channels * patch_height * patch_width * frame_patch_size
+        num_patches = (image_height // patch_height) * (image_width // patch_width) * (self.frames // self.frame_patch_size)
+        patch_dim = self.channels * patch_height * patch_width * self.frame_patch_size
 
-        assert pool in {'cls', 'mean'}, 'pool type must be either cls (cls token) or mean (mean pooling)'
+        assert self.pool in {'cls', 'mean'}, 'pool type must be either cls (cls token) or mean (mean pooling)'
 
         self.to_patch_embedding = nn.Sequential(
-            Rearrange('b c (f pf) (h p1) (w p2) -> b (f h w) (p1 p2 pf c)', p1 = patch_height, p2 = patch_width, pf = frame_patch_size),
+            Rearrange('b c (f pf) (h p1) (w p2) -> b (f h w) (p1 p2 pf c)', p1 = patch_height, p2 = patch_width, pf = self.frame_patch_size),
             nn.LayerNorm(patch_dim),
-            nn.Linear(patch_dim, dim),
-            nn.LayerNorm(dim),
+            nn.Linear(patch_dim, self.d_model),
+            nn.LayerNorm(self.d_model),
         )
 
-        self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
-        self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
-        self.dropout = nn.Dropout(emb_dropout)
+        self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, self.d_model))
+        self.cls_token = nn.Parameter(torch.randn(1, 1, self.d_model))
+        self.dropout = nn.Dropout(self.emb_dropout)
 
-        self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, dropout)
+        self.transformer = Transformer(self.d_model, self.num_layers, self.num_heads, self.dim_head, self.mlp_dim, self.att_dropout)
 
-        self.pool = pool
         self.to_latent = nn.Identity()
 
         # self.decoder = nn.Sequential(
@@ -116,6 +122,7 @@ class VViT(nn.Module):
         # )
 
     def forward(self, x):
+
         #  input x: (batch_size, frames, C)
         x = x.reshape(x.shape[0], 1, x.shape[1], 4, 4)
         #  shape of x: (batch_size, 1, frames, height, width)
@@ -129,7 +136,6 @@ class VViT(nn.Module):
 
         x = self.transformer(x)
         
-
         x = x.mean(dim = 1) if self.pool == 'mean' else x[:, 0]
 
         x = self.to_latent(x)
@@ -149,20 +155,9 @@ class VViT(nn.Module):
 
 
 def make_vvit(cfg):
-    return VViT(
-        image_size = 4,
-        image_patch_size = 2,
-        frames = 200,
-        frame_patch_size = 4,
-        num_classes = 16,
-        dim = 128,
-        depth = 4,
-        heads = 4,
-        mlp_dim = 2048,
-        dropout = 0.25,
-        emb_dropout = 0.5,
-        channels=1,
-    )
+    from tg.config import get_model_param
+    args = get_model_param(cfg)
+    return VViT(**args)
 
 def vis_atten(module, input, output):
     global attn_before_softmax, attn_after_softmax

@@ -5,30 +5,33 @@ _C = CN()
 _C.NAME = "TG"
 _C.DEBUG = True
 _C.SEED = 42
-
+_C.DEVICE = "cuda"
+_C.LOG_DIR = "logs/"
 
 # -----------------------------------------------------------------------------
 # Model
 # -----------------------------------------------------------------------------
 _C.MODEL = CN()
 _C.MODEL.NAME = "vit"
+_C.MODEL.PROJ_DIM = 128
 _C.MODEL.NUM_CLASSES = 2
 _C.MODEL.IN_CHANNELS = 1
 _C.MODEL.PATCH_SIZE = 2
 _C.MODEL.INPUT_SIZE = 4
 _C.MODEL.FRAMES = 150
-_C.MODEL.FRAME_PATCHES = 4
+_C.MODEL.FRAME_PATCH_SIZE = 4
+
 
 _C.MODEL.TRANSFORMER = CN()
-_C.MODEL.TRANSFORMER.N_LAYERS = 4
+_C.MODEL.TRANSFORMER.NUM_LAYERS = 4
 _C.MODEL.TRANSFORMER.D_MODEL = 128
-_C.MODEL.TRANSFORMER.N_HEADS = 4
-_C.MODEL.TRANSFORMER.D_FF = 2048
+_C.MODEL.TRANSFORMER.NUM_HEADS = 4
+_C.MODEL.TRANSFORMER.DIM_HEAD = 64
+_C.MODEL.TRANSFORMER.MLP_DIM = 2048
 _C.MODEL.TRANSFORMER.DROPOUT = 0.25
 _C.MODEL.TRANSFORMER.EMB_DROPOUT = 0.5
 _C.MODEL.TRANSFORMER.POOL = "mean"
 _C.MODEL.TRANSFORMER.CHANNELS = 1
-
 
 # -----------------------------------------------------------------------------
 # Dataset
@@ -59,6 +62,14 @@ _C.DATA.EMG.NOTCH_FREQ = 50
 _C.DATA.EMG.BUFF_LEN = 0
 _C.DATA.EMG.Q = 30
 
+# -----------------------------------------------------------------------------
+# Loss
+# -----------------------------------------------------------------------------
+_C.LOSS = CN()
+_C.LOSS.TEMPRATURE = 1
+_C.LOSS.USE_COSINE = True
+_C.LOSS.METRIC = 'MAE'
+_C.LOSS.LAMBDA = 0.25
 
 # -----------------------------------------------------------------------------
 # Solver
