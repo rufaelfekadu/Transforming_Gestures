@@ -16,14 +16,17 @@ import pytorch_lightning as pl
 from tg.models.emgnet import EmgNet
 from tg.config import cfg
 from tg.data.emgdataset import build_dataloaders
+from tg.loss.neuroloss import NeuroLoss
+from tg.loss.contrastive import NeuroLoss
 import argparse
 import os
-
+from tqdm import tqdm
 
 def train_one_epoch(model, dataloader, criterion, optimizer, device):
+    loss_fn = NeuroLoss(metric=cfg.SOLVER.METRIC, keypoints=cfg.DATA.LABEL_COLUMNS)
     model.train()
     running_loss = 0.0
-    for S in dataloader:
+    for S in tqdm(dataloader):
         (x_t,x_f, labels)= S[0],S[2],S[5]
         x_t,x_f, labels = x_t.to(device),x_f.to(device), labels.to(device)
         continue
@@ -45,10 +48,10 @@ def validate(model, dataloader, criterion, device):
     correct = 0
     total = 0
     with torch.no_grad():
-        for inputs, labels in dataloader:
-            inputs, labels = inputs.to(device), labels.to(device)
+        for S in dataloader:
+            (x_t, x_f, labels) = S[0], S[2], S[5]
 
-            outputs = model(inputs)
+            outputs = model(x_t,x_f)
             loss = criterion(outputs, labels)
 
             running_loss += loss.item()
@@ -67,7 +70,7 @@ def main(cfg):
     # Initialize model, loss function, and optimizer
     model = EmgNet(cfg=cfg).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=cfg.SOLVER.LR)
+    optimizer = getattr(optim,cfg.SOLVER.OPTIMIZER)(model.parameters(), lr=cfg.SOLVER.LR)
 
     # Datasets and dataloaders
     transform = transforms.Compose([
