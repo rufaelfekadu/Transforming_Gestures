@@ -3,3 +3,9 @@ DATA:
   EXP_SETUP_PATH: experiments.json
   SEGMENT_LENGTH: 200
   STRIDE: 200
+
+SOLVER:
+  PRETRAINED_PATH: output/exp1/
+
+SOLVER:
+  NUM_EPOCHS: 2

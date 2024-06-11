@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.4464333, g: 0.49624932, b: 0.5747285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -732,7 +731,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1504086329094581489, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
       propertyPath: m_Name
-      value: Thumb_CMC
+      value: Thumb_TMC
       objectReference: {fileID: 0}
     - target: {fileID: 2623085124069997456, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
       propertyPath: m_LocalPosition.x
@@ -786,6 +785,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Thumb_DIP
       objectReference: {fileID: 0}
+    - target: {fileID: 4662684398402526363, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
+      propertyPath: m_Name
+      value: Index_TMC
+      objectReference: {fileID: 0}
     - target: {fileID: 4753287377839896299, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
       propertyPath: m_Name
       value: Ring_MCP
@@ -793,6 +796,10 @@ PrefabInstance:
     - target: {fileID: 4868328527464032877, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
       propertyPath: m_Name
       value: Index_MCP
+      objectReference: {fileID: 0}
+    - target: {fileID: 5579671340439757684, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
+      propertyPath: m_Name
+      value: Middle_TMC
       objectReference: {fileID: 0}
     - target: {fileID: 6032971812587717904, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
       propertyPath: m_Name
@@ -838,9 +845,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7516863128757980479, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
+      propertyPath: m_Name
+      value: Ring_TMC
+      objectReference: {fileID: 0}
+    - target: {fileID: 7557078382005805367, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
+      propertyPath: m_Name
+      value: Pinky_TMC
+      objectReference: {fileID: 0}
     - target: {fileID: 8323637861299789213, guid: d2c0dfd907f8e470abe7992da8778dba, type: 3}
       propertyPath: m_Name
-      value: Thumb_PIP
+      value: Thumb_MCP
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

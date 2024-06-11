@@ -62,19 +62,9 @@ public class Hands : MonoBehaviour
         }
 
         [JsonRpcMethod]
-        void UpdateHands(Params angles)
-        {
-            // Debug.Log("UpdateHands");
-            // Debug.Log(angles.handName);
-            // Debug.Log(angles.jointNames);
-            // Debug.Log(angles.angles);
-            // Debug.Log(angles.angles.Length);
-            // Debug.Log(angles.jointNames
-        }
-        [JsonRpcMethod]
         void UpdateLeapHands(Params angles)
         {
-            bool pred = false;
+            // bool pred = false;
             if (angles.handName == "Label")
             {
                 handLabel = hands.FindChildGameObject("HandLabel_1");
@@ -84,9 +74,8 @@ public class Hands : MonoBehaviour
             {
                 handPrediction = hands.FindChildGameObject("HandPrediction_1");
                 children = handPrediction.GetComponentsInChildren<Transform>();
-                pred = true;
+                // pred = true;
             }
-            int i = 0;
             foreach (Transform child in children)
             {   
 
@@ -96,6 +85,10 @@ public class Hands : MonoBehaviour
                 {
                     continue;
                 }
+                // if name not in jointNames array skip
+                // if (!angles.jointNames.Contains(name + "_Flex") && !angles.jointNames.Contains(name + "_Adb") ){
+                //     continue;
+                // }
                 //  if name is not thumb and containes tmc skip
                 if (!name.Contains("Thumb") && name.Contains("TMC")){
                     continue;
@@ -127,7 +120,7 @@ public class Hands : MonoBehaviour
                 }
                   
                 float val_abd = child.localEulerAngles.z;
-
+                Debug.Log(child.name);
                 if (name.Contains("TMC") || name.Contains("MCP")){
                     int index_abd = Array.IndexOf(angles.jointNames, name+"_Adb");
                     val_abd = angles.angles[index_abd];
@@ -168,7 +161,6 @@ public class Hands : MonoBehaviour
             }
             
         
-            int i = 0;
             foreach (Transform child in children)
             {   
                 // get the name of the child
@@ -225,7 +217,6 @@ public class Hands : MonoBehaviour
                 // set the angles of the finger
                 child.localEulerAngles = new Vector3(fingerAngles[0], fingerAngles[1], fingerAngles[2]);
             }
-            int j=0;
 
 
         }

@@ -34,7 +34,7 @@ def setup_logger(cfg, log_type='train'):
     logger.setLevel(logging.INFO)
 
     now = datetime.datetime.now()
-    log_path = os.path.join(log_dir, 'log.txt_{}_{}'.format(log_type, now.strftime('%Y%m%d_%H%M%S')))
+    log_path = os.path.join(log_dir, 'log_{}_{}.txt'.format(log_type, now.strftime('%Y%m%d_%H%M%S')))
     
     fh = logging.FileHandler(log_path, mode='w')
     fh.setLevel(logging.INFO)
@@ -44,9 +44,9 @@ def setup_logger(cfg, log_type='train'):
     ch.setLevel(logging.INFO)
 
     # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s \n %(message)s')
     # fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
+    # ch.setFormatter(formatter)
     # add the handlers to the logger
     logger.addHandler(fh)
     logger.addHandler(ch)
@@ -66,7 +66,10 @@ class AverageMeter:
         self.avg = self.total/n
 
     def __str__(self):
-        return f'{self.avg}'
+        return f'{round(float(self.avg), 4)}'.ljust(10)
+    
+    def __round__(self, n):
+        return round(float(self.avg), n)
     
 def plot_sample(pred, target, label_columns):
 
