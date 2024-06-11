@@ -21,7 +21,7 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = True
     torch.backends.cudnn.deterministic = True
 
-def setup_logger(cfg):
+def setup_logger(cfg, log_type='train'):
     import logging
     import os
     import datetime
@@ -34,7 +34,7 @@ def setup_logger(cfg):
     logger.setLevel(logging.INFO)
 
     now = datetime.datetime.now()
-    log_path = os.path.join(log_dir, 'log.txt_{}'.format(now.strftime('%Y%m%d_%H%M%S')))
+    log_path = os.path.join(log_dir, 'log.txt_{}_{}'.format(log_type, now.strftime('%Y%m%d_%H%M%S')))
     
     fh = logging.FileHandler(log_path, mode='w')
     fh.setLevel(logging.INFO)

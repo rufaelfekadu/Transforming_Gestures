@@ -23,3 +23,50 @@ env/
 dataset/
 logs/
 output/
+
+# gitigonre for unity project
+# =============== #
+# Unity generated #
+# =============== #
+Temp/
+Library/
+obj/
+Build/
+Builds/
+Logs/
+
+# ===================================== #
+# Visual Studio / Rider / MonoDevelop generated #
+# ===================================== #
+ExportedObj/
+.vs/
+/*.userprefs
+/*.csproj
+/*.pidb
+/*.sln*
+/*.suo
+/*.tmp
+/*.user
+/*.userosscache
+/*.booproj
+/*.pidb.meta
+/*.bak
+/Assembly-CSharp-Editor-firstpass.csproj
+/Assembly-CSharp-Editor.csproj
+/Assembly-CSharp-firstpass.csproj
+/Assembly-CSharp.csproj
+/Assembly-UnityScript-firstpass.unityproj
+/Assembly-UnityScript.unityproj
+/UnityVS.version
+/.idea/
+
+# ============ #
+# OS generated #
+# ============ #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
