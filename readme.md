@@ -1,6 +1,6 @@
 # Transforming Gestures
 
-This repository contains code for transforming gestures. Follow the steps below to run the code:
+This repository contains the code for transforming gestures. Follow the instructions below to set up and run the code.
 
 ## Prerequisites
 
@@ -30,56 +30,57 @@ This repository contains code for transforming gestures. Follow the steps below 
 
 ## Usage
 
-1. Prepare the data:
-    make sure the dataset folder is organised in the following manner
+### Data Preparation
+
+1. Ensure the dataset folder is organized in the following structure:
 
     ```bash
-    .
     ├── dataset
     │   ├── 003
     │   │   ├── S1
-    |   |   |   ├── P1
-    |   |   |   |   ├── fpe_pos1_SSS_S1_rep0_BT_full.csv
-    |   |   |   |   ├── fpe_pos1_SSS_S1_rep0_BT_full.csv
-    |   |   |   |   └── log.json
-    |   |   |   ├── P2
-    |   |   |   |   ├── fpe_pos2_SSS_S1_rep0_BT_full.csv
-    |   |   |   |   ├── fpe_pos2_SSS_S1_rep0_BT_full.csv
-    |   |   |   |   └── log.json
-    |   |   |   ├── ...
-    |   |   └── └── P4
+    │   │   │   ├── P1
+    │   │   │   │   ├── fpe_pos1_SSS_S1_rep0_BT_full.csv
+    │   │   │   │   ├── fpe_pos1_SSS_S1_rep0_BT_full.csv
+    │   │   │   │   └── log.json
+    │   │   │   ├── P2
+    │   │   │   │   ├── fpe_pos2_SSS_S1_rep0_BT_full.csv
+    │   │   │   │   ├── fpe_pos2_SSS_S1_rep0_BT_full.csv
+    │   │   │   │   └── log.json
+    │   │   │   ├── ...
+    │   │   ├── └── P4
     │   ├── ...
-    |   └── 005
-    |
+    │   └── 005
     ```
 
-    Then run the following command to prepare the data:
+2. Run the following command to prepare the data:
 
     ```bash
     python prepare_data.py --DATA.PATH path/to/dataset
     ```
 
-    This script will preprocess the data and prepare it for training. An .npz files will be created as a reuslt of this processes.
+    This script will preprocess the data and prepare it for training. An .npz file will be created as a result of this process.
 
-2. Train the model:
+### Model Training
 
-    ```bash
-    python train.py
-    ```
-
-This script will train the model using the preprocessed data.
-
- ## Visualization:
-
-1. Setup unity:
-    
-Follow the instruction in [here](hand project/readme.md)
+1. Run the following command to train the model:
 
     ```bash
-    python evaluate.py
+    python train.py --VIS.SAVE_TEST_SET
     ```
 
-    This script will evaluate the trained model on a test dataset.
+    This script will train the model using the preprocessed data and save the test set for visualization.
+
+## Visualization
+
+### Unity Setup
+
+1. Follow the instructions in the [unity_hand/readme.md](unity_hand/readme.md) file to set up the Unity project. Then, run the following command:
+
+    ```bash
+    python visualize.py --SOLVER.PRETRAINED_PATH /path/to/pretrained/directory
+    ```
+
+    This will send RPC calls to the Unity project running in the background using the test set saved during training.
 
 ## License
 

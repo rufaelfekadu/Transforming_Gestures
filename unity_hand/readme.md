@@ -12,12 +12,11 @@
 
 3. Unity will import the project and you can start working on it.
 
-## Usage
-After Runnig the project in unity navigate to the previous directory and run the visualize.py file
-```bash
-    cd ..
-    python visualize.py
-```
+4. Run the project
+
+ ## Screen Shots
+
+
 
 ## License
 Specify the license under which the project is distributed.
