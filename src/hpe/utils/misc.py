@@ -21,7 +21,7 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = True
     torch.backends.cudnn.deterministic = True
 
-def setup_logger(cfg, log_type='train'):
+def setup_logger(cfg, log_type='train', setup_file=True, setup_console=True):
     import logging
     import os
     import datetime
@@ -32,24 +32,24 @@ def setup_logger(cfg, log_type='train'):
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-
-    now = datetime.datetime.now()
-    log_path = os.path.join(log_dir, 'log_{}_{}.txt'.format(log_type, now.strftime('%Y%m%d_%H%M%S')))
-    
-    fh = logging.FileHandler(log_path, mode='w')
-    fh.setLevel(logging.INFO)
-
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-
-    # create formatter and add it to the handlers
     formatter = logging.Formatter('%(asctime)s \n %(message)s')
-    # fh.setFormatter(formatter)
-    # ch.setFormatter(formatter)
-    # add the handlers to the logger
-    logger.addHandler(fh)
-    logger.addHandler(ch)
+    
+    if setup_file:
+        now = datetime.datetime.now()
+        log_path = os.path.join(log_dir, 'log_{}_{}.txt'.format(log_type, now.strftime('%Y%m%d_%H%M%S')))
+        
+        fh = logging.FileHandler(log_path, mode='w')
+        fh.setLevel(logging.INFO)
+        # fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+    if setup_console:
+        # create console handler with a higher log level
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        # ch.setFormatter(formatter)
+        logger.addHandler(ch)
+    
     return logger
 
 class AverageMeter:

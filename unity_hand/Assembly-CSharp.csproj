@@ -59,6 +59,8 @@
     <UnityVersion>2022.3.30f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Analyzer Include="/Users/apple/Documents/Projects/Transforming_Gestures/unity_hand/Assets/Plugins/PeacefulPie.dll" />
+    <Analyzer Include="/Users/apple/Documents/Projects/Transforming_Gestures/unity_hand/Assets/Plugins/AustinHarris.JsonRpc.dll" />
     <Analyzer Include="/Applications/Unity/Hub/Editor/2022.3.30f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll" />
     <Analyzer Include="/Applications/Unity/Hub/Editor/2022.3.30f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>

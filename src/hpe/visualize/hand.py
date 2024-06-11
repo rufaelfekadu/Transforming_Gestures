@@ -13,6 +13,7 @@ import numpy as np
 import time
 import torch
 from torch.utils.data import DataLoader
+from torch.utils.data.dataset import Subset
 
 @dataclass
 class params:
@@ -149,17 +150,20 @@ class Hands(HandBase):
 
         # load dataset
         dataset = torch.load(cfg.SOLVER.PRETRAINED_PATH+'test_set.pth', map_location=torch.device('cpu'))
+        if isinstance(dataset, Subset):
+            dataset = dataset.dataset
+
         self.data_loader = DataLoader(
             dataset=dataset,
             batch_size=len(dataset),
             shuffle=False
         )
 
-        self.joint_columns = dataset.dataset.label_columns.tolist()
+        self.joint_columns = dataset.label_columns.tolist()
         self.joint_columns_xt = []
 
         #  setup logger
-        self.logger = setup_logger(cfg=cfg, log_type="visualize")
+        self.logger = setup_logger(cfg=cfg, log_type="visualize", setup_console=False)
 
     def update(self, keypoints: Any):
 
@@ -190,7 +194,7 @@ class Hands(HandBase):
 
                 name_xt, pred_xt = self.get_full_hand(output.tolist()[j], self.joint_columns)
                 _, label_xt = self.get_full_hand(label[j,-1, :].tolist(), self.joint_columns)
-                self.logger.info([*label_xt, *pred_xt, self.data_loader.dataset.dataset.gesture_mapping_class[gesture[0][j].item()]])
+                self.logger.info([*label_xt, *pred_xt, self.data_loader.dataset.gesture_mapping_class[gesture[0][j].item()]])
                 
                 self.joint_columns_xt = name_xt
                 self.update((label_xt, pred_xt))

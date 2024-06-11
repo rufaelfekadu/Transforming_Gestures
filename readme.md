@@ -67,15 +67,19 @@ This repository contains code for transforming gestures. Follow the steps below 
     python train.py
     ```
 
-    This script will train the model using the preprocessed data.
+This script will train the model using the preprocessed data.
 
-<!-- 3. Evaluate the model:
+ ## Visualization:
+
+1. Setup unity:
+    
+Follow the instruction in [here](hand project/readme.md)
 
     ```bash
     python evaluate.py
     ```
 
-    This script will evaluate the trained model on a test dataset. -->
+    This script will evaluate the trained model on a test dataset.
 
 ## License
 
