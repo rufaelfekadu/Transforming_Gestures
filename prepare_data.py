@@ -64,8 +64,10 @@ def _filter_data(data: np.ndarray, notch_freq=50, fs=250, Q=30, low_freq=30, ) -
         # apply filters using 'filtfilt' to avoid phase shift
         data = sosfiltfilt(sos, data, axis=0, padtype='even')
         data = filtfilt(b_notch, a_notch, data, padtype='even')
-
-
+        # Calculate the normalized frequency and design the notch filter for the second harmonic frequency
+        w0 = 2*notch_freq / (fs / 2)
+        b_notch, a_notch = iirnotch(w0, Q)
+        data = filtfilt(b_notch, a_notch, data, padtype='even')
 
         return data
 
