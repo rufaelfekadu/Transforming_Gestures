@@ -72,8 +72,8 @@ class EmgDataset(Dataset):
             # frequency augmentations 
             self.aug1_f = self.transform_f(self.data_f).float()
         
-        elif self.training_mode == 'classify':
-            self.data = self.transform_c(self.data).float()
+        # elif self.training_mode == 'classify':
+        #     self.data = self.transform_c(self.data).float()
 
     def discritise_without_grouping(self, data, seq_len=150, stride=5):
         # Initialize an empty list to store the strided arrays
