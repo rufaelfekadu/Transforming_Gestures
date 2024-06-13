@@ -75,6 +75,20 @@ class EmgNet(nn.Module):
         else:
             return out
     
+    def load_pretrained(self, path):
+
+        print(f'Loading pretrained model from {path}')
+        pretrained_dict = torch.load(path, map_location=torch.device('cpu'))
+        model_dict = self.state_dict()
+
+        pretrained_model_dict = {k: v for k, v in pretrained_dict['model_state_dict'].items() if k in model_dict}
+        
+        model_dict.update(pretrained_model_dict) 
+        self.load_state_dict(model_dict)
+        print('Pretrained model loaded')
+        
+        return pretrained_dict['exp_setup'] if 'exp_setup' in pretrained_dict.keys() else None
+    
 if __name__ == "__main__":
 
     #  test the model

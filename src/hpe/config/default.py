@@ -93,6 +93,15 @@ _C.SOLVER.NUM_WORKERS = 4
 _C.SOLVER.CHECKPOINT = "checkpoint/"
 _C.SOLVER.LOG_DIR = "logs/"
 _C.SOLVER.SAVE_DIR = "output/"
+_C.SOLVER.PRETRAINED_PATH = "output/exp1"
 _C.SOLVER.RESUME = False
 
+
+# -----------------------------------------------------------------------------
+#  Visualization
+# -----------------------------------------------------------------------------
+_C.VIS = CN()
+_C.VIS.PORT = 9000
+_C.VIS.SLEEP_TIME = 0.1
+_C.VIS.SAVE_TEST_SET = False
 
