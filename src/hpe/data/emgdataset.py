@@ -64,7 +64,7 @@ class EmgDataset(Dataset):
 
         #  fft 
         self.data_f = fft(self.data, dim=1).abs()
-        self.data_c = self.transform_c(self.data).float()
+        # self.data_c = self.transform_c(self.data).float()
         
         if self.training_mode == 'pretrain':
             # time augmentations apply jitter augmentation
@@ -125,7 +125,7 @@ class EmgDataset(Dataset):
                 0, 0, self.gesture_class[idx]
         else:
             return self.data[idx], 0, self.data_f[idx], \
-                0, self.data_c[idx], self.label[idx], self.gesture_class[idx] 
+                0, 0, self.label[idx], self.gesture_class[idx] 
 
 
 #  read exp_setups from json file
