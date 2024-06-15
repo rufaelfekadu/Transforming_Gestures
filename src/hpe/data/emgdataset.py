@@ -213,7 +213,8 @@ def build_dataloaders(cfg, pretrain=True):
                             NormalizeTransform(norm_type='zscore')])
     # transforms_t = Compose([JitterTransform(scale=cfg.DATA.JITTER_SCALE)])
     # transforms_f = Compose([FrequencyTranform(fs=cfg.DATA.EMG.SAMPLING_RATE, pertub_ratio=cfg.DATA.FREQ_PERTUB_RATIO)])
-    transforms = (None, None, transforms_c)
+    # transforms = (None, None, transforms_c)
+    transforms = (None, None, None)
 
     data_paths = pretrain_dirs
     try:
