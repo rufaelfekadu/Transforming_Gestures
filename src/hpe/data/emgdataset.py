@@ -52,8 +52,8 @@ class EmgDataset(Dataset):
 
         self.data = merged_data[:, :, 0:len(self.data_columns)]
         self.label = merged_data[:, :, len(self.data_columns):-2]
-        self.gesture_class = merged_data[:, :, -2]
-        self.gestures = merged_data[:, :, -1]
+        self.gesture_class = merged_data[:, :, -2] #id of the gesture
+        self.gestures = merged_data[:, :, -1] #Id of the experiment
 
 
         #  to tensor
