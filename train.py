@@ -18,7 +18,7 @@ def main(cfg):
     # setup device
     device = "cpu"
 
-    #  setup logger
+    #  setup loggerf
     logger = setup_logger(cfg)
 
     # build dataset
