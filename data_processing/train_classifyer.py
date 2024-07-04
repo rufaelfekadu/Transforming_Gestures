@@ -17,21 +17,34 @@ import numpy as np
 from tqdm import tqdm
 import torch.nn as nn
 import torch.optim as optim
-
+import datetime
 # Define the MLP model
 class MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(MLP, self).__init__()
-        self.fc1 = nn.Linear(input_size, 32)
-        # self.fc2 = nn.Linear(32, 32)
-        self.fc3 = nn.Linear(32, num_classes)
-
+        self.fc1 = nn.Linear(input_size, 128)
+        self.bn1 = nn.BatchNorm1d(128)
+        self.fc2 = nn.Linear(128, 128)
+        self.bn2 = nn.BatchNorm1d(128)
+        self.fc3 = nn.Linear(128, num_classes)
+        self.dropout = nn.Dropout(p=0.5)
+        self._initialize_weights()
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        # x = torch.relu(self.fc2(x))
+        x = torch.relu(self.bn1(self.fc1(x)))
+        x = self.dropout(x)
+        x = torch.relu(self.bn2(self.fc2(x)))
+        x = self.dropout(x)
         x = self.fc3(x)
         return x
-
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm1d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 def main_NN(cfg):
     # setup device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -163,7 +176,19 @@ def main_classifiers(cfg):
     print(f"F1-score: {f1}")
     print("Confusion Matrix:")
     print(conf_matrix)
+    # Save the metrics to a text file with a timestamp
+    current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"metrics_{current_time}.txt"
+    with open(filename, 'w') as file:
+        file.write(f"Accuracy: {accuracy}\n")
+        file.write(f"Precision: {precision}\n")
+        file.write(f"Recall: {recall}\n")
+        file.write(f"F1-score: {f1}\n")
+        file.write("Confusion Matrix:\n")
+        for row in conf_matrix:
+            file.write(f"{row}\n")
 
+    print(f"Data saved in file: {filename}")
 
 # Function to build dataloaders
 def extract_data_from_dataloader(dataloader):
@@ -201,6 +226,6 @@ if __name__ == "__main__":
     #  set seed
     set_seed(cfg.SEED)
 
-    # main_classifiers(cfg)
-    main_NN(cfg)
+    main_classifiers(cfg)
+    # main_NN(cfg)
 

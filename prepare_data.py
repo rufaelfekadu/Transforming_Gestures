@@ -107,7 +107,7 @@ def _prepare_data( data_path, label_path, index=0, lock=None, event=None):
 
     # normalise and filter the data
     data[data_columns] = StandardScaler().fit_transform(data[data_columns])
-    data[data_columns] = _filter_data(data[data_columns], fs=250)
+    data[data_columns] = _filter_data(data[data_columns], fs=250,low_freq=20)
     data[data_columns] = StandardScaler().fit_transform(data[data_columns])
 
     #  merge the data

@@ -137,7 +137,7 @@ def get_dirs_for_exp(cfg):
     return pretrain_dirs, train_dirs, test_dirs
 
 
-def build_dataloaders_for_classifier(cfg, pretrain=True):
+def build_dataloaders_for_classifier(cfg, pretrain=True,rep=None):
     pretrain_dirs, train_dirs, test_dirs = get_dirs_for_exp(cfg)
     dataloaders = {}
     num_workers = cfg.SOLVER.NUM_WORKERS
@@ -152,17 +152,21 @@ def build_dataloaders_for_classifier(cfg, pretrain=True):
     # cfg.DATA.NUM_CLASSES = train_set.num_classes
     # cfg.MODEL.FRAMES = train_set.data.shape[1]
     # cfg.MODEL.OUTPUT_SIZE = train_set.label.shape[-1]
-
-    rep = np.random.randint(1, 5)
-
-    #  use one of the repititions as validation
     unique_gestures = np.unique(train_set.gesture_mapping_class)
-    test_gestures = [i + f'_{rep}' for i in unique_gestures]
+
+
+
+    if rep is None:
+        rep = [np.random.randint(1, 5)]
+    #  use one of the repititions as validation
+    test_gestures=[]
+    for k in rep:
+        test_gestures += [i + f'_{k}' for i in unique_gestures]
 
     train_set, val_set, test_set = train_test_gesture_split_classification(train_set, test_gestures=test_gestures)
     # train_set, val_set, test_set = train_test_split_by_session(train_set)
 
-    # test_set_2 = EmgDataset(cfg, test_dirs, training_mode='hpe', transforms=(transforms_t, transforms_f, transforms_c))
+    test_set_2 = EmgDatasetClassifier(cfg, test_dirs, training_mode='hpe')
     # _,_, test_set_2 = train_test_gesture_split(test_set_2, test_gestures=test_gestures)
     # _,_, test_set_2 = train_test_split_by_session(test_set_2)
 
@@ -170,34 +174,38 @@ def build_dataloaders_for_classifier(cfg, pretrain=True):
                                                        num_workers=num_workers, persistent_workers=True, drop_last=True)
     dataloaders['val'] = torch.utils.data.DataLoader(val_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False,
                                                      num_workers=num_workers, persistent_workers=True, drop_last=False)
-    dataloaders['test'] = torch.utils.data.DataLoader(test_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False,
-                                                      num_workers=num_workers, persistent_workers=True, drop_last=False)
-    # dataloaders['test_2'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
+    # dataloaders['test'] = torch.utils.data.DataLoader(test_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False,
+    #                                                   num_workers=num_workers, persistent_workers=True, drop_last=False)
+    dataloaders['test'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
     # split test into validation and test
 
-    return dataloaders
+    return dataloaders,unique_gestures
 
 
-def build_dataloader_classification(cfg):
+def build_dataloader_classification(cfg,rep=None):
     _, train_dirs, test_dirs = get_dirs_for_exp(cfg)
     dataloaders = {}
 
     transforms_c = Compose([RMSTransform(),
                             NormalizeTransform(norm_type='zscore')])
-    train_set = EmgDatasetClassifier(cfg, train_dirs, training_mode='classify', transform_c=transforms_c)
+    train_set = EmgDatasetClassifier(cfg, train_dirs, training_mode='classify')
 
     rep = np.random.randint(1, 5)
 
     #  use one of the repititions as validation
     unique_gestures = np.unique(train_set.gesture_mapping_class)
-    test_gestures = [i + f'_{rep}' for i in unique_gestures]
+    if rep is None:
+        rep = [np.random.randint(1, 5)]
+    #  use one of the repititions as validation
+    test_gestures = []
+    for k in rep:
+        test_gestures += [i + f'_{k}' for i in unique_gestures]
 
+    print("gestures are:\n\t"+"\n\t".join(unique_gestures))
+    print("test gestures are:\n\t"+"\n\t".join(test_gestures))
     train_set, val_set, test_set = train_test_gesture_split_classification(train_set, test_gestures=test_gestures)
 
-    transforms_c = Compose([RMSTransform(),
-                            NormalizeTransform(norm_type='zscore')])
-
-    test_set_2 = EmgDatasetClassifier(cfg, test_dirs, training_mode='classify', transform_c=transforms_c)
+    test_set_2 = EmgDatasetClassifier(cfg, test_dirs, training_mode='classify')
     _, _, test_set_2 = train_test_gesture_split_classification(test_set_2, test_gestures=test_gestures)
 
     num_workers = cfg.SOLVER.NUM_WORKERS
@@ -207,12 +215,12 @@ def build_dataloader_classification(cfg):
                                                        num_workers=num_workers, persistent_workers=True, drop_last=True)
     dataloaders['val'] = torch.utils.data.DataLoader(val_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False,
                                                      num_workers=num_workers, persistent_workers=True, drop_last=True)
-    dataloaders['test'] = torch.utils.data.DataLoader(test_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False,
-                                                      num_workers=num_workers, persistent_workers=True, drop_last=True)
-    # dataloaders['test_2'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
+    # dataloaders['test'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False,
+    #                                                   num_workers=num_workers, persistent_workers=True, drop_last=True)
+    dataloaders['test'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
     # split test into validation and test
 
-    return dataloaders
+    return dataloaders,unique_gestures
 
 
 def train_test_gesture_split_classification(dataset, test_gestures):
