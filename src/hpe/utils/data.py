@@ -1,5 +1,7 @@
 # Description: utility functions for finger pose estimation
 import os
+import warnings
+
 import numpy as np
 import glob
 import pandas as pd
@@ -416,8 +418,12 @@ def read_leap(path, fs=250, positions=False, rotations=True, visualisation=False
         # drop null and duplicates
         # leap_df.dropna(inplace=True)
         # leap_df.drop_duplicates(inplace=True, subset=['time'])
+    try:
+        leap_df['time'] = pd.to_datetime(leap_df['time'])
+    except Exception as e:
+        warnings.warn(f"data from {path} is corrupted in the time stemp")
+        raise e
 
-    leap_df['time'] = pd.to_datetime(leap_df['time'])
     leap_df['time'] = leap_df['time'].dt.tz_localize(None)
     leap_df = leap_df.set_index('time')
 

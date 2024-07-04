@@ -3,14 +3,17 @@ from hpe.models import EmgNet, build_model, build_optimiser
 from hpe.data import build_dataloaders
 from hpe.loss import build_loss
 from hpe.utils.misc import set_seed, setup_logger, AverageMeter
+import wandb  # Import wandb
 
 import os
 import argparse
 import torch
 from tabulate import tabulate
-
+wandb.login()
 
 def main(cfg):
+    # Initialize wandb
+    wandb.init(project='gesture-tracking', config=cfg)
 
     # setup device
     device = "cpu"
@@ -33,7 +36,7 @@ def main(cfg):
     cfg.freeze()
 
     # train
-    train(cfg, model, dataloaders['train'], dataloaders['val'], optimiser, scheduler, criterions, logger, device)
+    train(cfg, model, dataloaders['train'], dataloaders['val'], optimiser, scheduler, criterions, logger,wandb, device)
 
     # test
     test_loss = test(model, dataloaders['test'], criterions[0], device)
@@ -44,8 +47,7 @@ def main(cfg):
         save_path = os.path.join(cfg.SOLVER.SAVE_DIR, 'test_set.pth')
         torch.save(dataloaders['test'].dataset, save_path)
 
-
-def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logger, device='cpu'):
+def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logger,wandb, device='cpu'):
 
     epochs = cfg.SOLVER.NUM_EPOCHS
     best_val_loss = float('inf')
@@ -61,7 +63,8 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
         train_metrics = train_epoch(model, train_set, optimiser, scheduler, criterions, device)
         val_metrics = test(model, val_set, criterions[0])
         logger.info(tabulate([[i, *train_metrics, val_metrics]], tablefmt='plain'))
-
+        wandb.log({'Epoch': i, 'Total Loss': train_metrics[0].avg, 'TF Loss': train_metrics[1].avg,
+                   'Pred Loss': train_metrics[2].avg, 'Val Loss': val_metrics.avg})
         if val_metrics.avg < best_val_loss:
             best_val_loss = val_metrics.avg
             save_path = os.path.join(cfg.SOLVER.SAVE_DIR, 'best_model_{}.pth'.format(cfg.DATA.EXP_SETUP))
@@ -80,7 +83,7 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
                 break
 
         scheduler.step(val_metrics.avg)
-        
+    wandb.finish()  # Close the wandb run
 def train_epoch(model, train_loader,optimiser, scheduler, criterions, device):
 
     model.train()
@@ -113,6 +116,7 @@ def train_epoch(model, train_loader,optimiser, scheduler, criterions, device):
         total_loss.update(l_total, n)
         tf_loss.update(l_tf, n)
         pred_loss.update(l_pred, n)
+        # Log metrics to wandb
 
     return total_loss, tf_loss, pred_loss
 
