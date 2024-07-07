@@ -1,3 +1,5 @@
+import warnings
+
 import torch
 from torch.fft import fft, rfft
 from torch.utils.data import Dataset
@@ -220,14 +222,14 @@ def build_dataloaders(cfg, pretrain=True):
     try:
         if pretrain:
             pretrain_set = EmgDataset(cfg, data_paths, training_mode='pretrain',
-                                transforms = transforms)
+                                      transforms = transforms)
             dataloaders['pretrain'] = torch.utils.data.DataLoader(pretrain_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True, drop_last=True, num_workers=num_workers, persistent_workers=True)
 
     except:
         print('No pretrain data found')
         dataloaders['pretrain'] = None
     train_set = EmgDataset(cfg, train_dirs, training_mode='hpe',
-                            transforms=transforms)
+                           transforms=transforms)
     cfg.DATA.LABEL_COLUMNS = train_set.label_columns.tolist()
     cfg.DATA.NUM_CLASSES = train_set.num_classes
     cfg.MODEL.FRAMES = train_set.data.shape[1]
@@ -241,8 +243,20 @@ def build_dataloaders(cfg, pretrain=True):
 
     train_set, val_set, test_set = train_test_gesture_split(train_set, test_gestures=test_gestures)
     # train_set, val_set, test_set = train_test_split_by_session(train_set)
-
-    test_set_2 = EmgDataset(cfg, test_dirs, training_mode='hpe', transforms=transforms)
+    any_flag=False
+    fully_overlapped=True
+    for i in train_dirs:
+        for j in test_dirs:
+            if i==j:
+                any_flag=True
+            else:
+                fully_overlapped=False
+    if not any_flag:
+        test_set = EmgDataset(cfg, test_dirs, training_mode='hpe', transforms=transforms)
+        print("test and train are not overlapped, great:)")
+    elif not fully_overlapped:
+        warnings.warn("train and test are partially overlapped which is not treated well!!!!")
+    # test_set_2 = EmgDataset(cfg, test_dirs, training_mode='hpe', transforms=transforms)
     # _,_, test_set_2 = train_test_gesture_split(test_set_2, test_gestures=test_gestures)
     # _,_, test_set_2 = train_test_split_by_session(test_set_2)
 
@@ -250,7 +264,7 @@ def build_dataloaders(cfg, pretrain=True):
     dataloaders['train'] = torch.utils.data.DataLoader(train_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True, num_workers=num_workers, persistent_workers=True, drop_last=True)
     dataloaders['val'] = torch.utils.data.DataLoader(val_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=False)
     dataloaders['test'] = torch.utils.data.DataLoader(test_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=False)
-    dataloaders['test_2'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
+    # dataloaders['test_2'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
 
 
     return dataloaders
