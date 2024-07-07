@@ -4,17 +4,19 @@ from hpe.data import build_dataloaders
 from hpe.loss import build_loss
 from hpe.utils.misc import set_seed, setup_logger, AverageMeter
 import wandb  # Import wandb
-
+from utils.slurm_job import SlurmJobFactory
 import os
 import argparse
 import torch
 from tabulate import tabulate
-
+import datetime
 wandb.login()
 import torch
 
 
 def main(cfg):
+    #  set seed
+    set_seed(cfg.SEED)
     # Initialize wandb
     wandb.init(project='gesture-tracking', config=cfg)
 
@@ -26,6 +28,7 @@ def main(cfg):
     else:
         device = 'cpu'
         print("CUDA is not available. Using CPU.")
+    cfg.DEVICE = device
 
     #  setup loggerf
     logger = setup_logger(cfg)
@@ -151,6 +154,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Finger gesture tracking')
     parser.add_argument('--config', type=str, default='config.yaml', help='Path to config file')
     parser.add_argument('--opts', nargs='*', default=[], help='Modify config options using the command-line')
+    parser.add_argument('--cluster', nargs='1', default=False, help='Modify config options using the command-line')
     args = parser.parse_args()
 
     cfg.merge_from_file(args.config)
@@ -159,8 +163,11 @@ if __name__ == '__main__':
 
     cfg.SOLVER.SAVE_DIR = os.path.join(cfg.SOLVER.SAVE_DIR, cfg.DATA.EXP_SETUP)
     os.makedirs(cfg.SOLVER.SAVE_DIR, exist_ok=True)
-
-    #  set seed
-    set_seed(cfg.SEED)
-
-    main(cfg)
+    if args.cluster:
+        current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        os.makedirs(os.path.join('cluster_logs','train_logs'),exist_of=True)
+        s = SlurmJobFactory(os.path.join('cluster_logs','train_logs'))
+        ID = f'{cfg.DATA.EXP_SETUP}_{current_time}'
+        s.send_job(f"simulation_{ID}",f"python3 -c 'from train import main; main()' {cfg}")
+    else:
+        main(cfg)
