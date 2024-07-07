@@ -165,7 +165,7 @@ if __name__ == '__main__':
     os.makedirs(cfg.SOLVER.SAVE_DIR, exist_ok=True)
     if args.cluster:
         current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        os.makedirs(os.path.join('cluster_logs','train_logs'),exist_of=True)
+        os.makedirs(os.path.join('cluster_logs','train_logs'),exist_ok=True)
         s = SlurmJobFactory(os.path.join('cluster_logs','train_logs'))
         ID = f'{cfg.DATA.EXP_SETUP}_{current_time}'
         s.send_job(f"simulation_{ID}",f"python3 -c 'from train import main; main()' {cfg}")
