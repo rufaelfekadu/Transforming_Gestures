@@ -49,7 +49,7 @@ def read_dirs(data_path):
 
     return edf_files, csv_files
 
-def train_test_gesture_split(dataset, test_gestures):
+def train_test_gesture_split(dataset, test_gestures,include_train=True):
 
     train_idx = []
     test_idx = []
