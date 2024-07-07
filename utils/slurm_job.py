@@ -78,7 +78,7 @@ class SlurmJob:
                 raise Exception("timeout reached") # TODO: better exception type
             try:
                 # logger.info("Trying seff {}".format(self.job_id))
-                popen_output = os.popen("/opt/slurm/bin/seff {}".format(self.job_id)).read()
+                popen_output = os.popen("/usr/bin/seff {}".format(self.job_id)).read()
                 # logger.info(popen_output[:-1])
                 print(popen_output)
                 state_parts = popen_output.split("\n")[3][7:].split(" ")
