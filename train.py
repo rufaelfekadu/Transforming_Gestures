@@ -154,7 +154,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Finger gesture tracking')
     parser.add_argument('--config', type=str, default='config.yaml', help='Path to config file')
     parser.add_argument('--opts', nargs='*', default=[], help='Modify config options using the command-line')
-    parser.add_argument('--cluster', nargs='1', default=False, help='Modify config options using the command-line')
+    parser.add_argument('--cluster', nargs=1, default=False, help='Modify config options using the command-line')
     args = parser.parse_args()
 
     cfg.merge_from_file(args.config)
@@ -169,5 +169,6 @@ if __name__ == '__main__':
         s = SlurmJobFactory(os.path.join('cluster_logs','train_logs'))
         ID = f'{cfg.DATA.EXP_SETUP}_{current_time}'
         s.send_job(f"simulation_{ID}",f"python3 -c 'from train import main; main()' {cfg}")
+        print("Job sent with name: {}")
     else:
         main(cfg)
