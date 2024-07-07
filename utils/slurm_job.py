@@ -77,6 +77,7 @@ class SlurmJob:
             fh.writelines(self.run_line)
 
         popen_output = os.popen("/usr/bin/sbatch %s" %(self.job_filename)).read()
+        print(popen_output)
         self.job_id = int(popen_output.split(" ")[3][:-1])
         logger.info("Job {}({}) submitted".format(self.job_name, self.job_id))
     
