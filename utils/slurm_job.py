@@ -38,7 +38,7 @@ class SlurmJobState:
 
 
 class SlurmJob:
-    def __init__(self, job_name, job_folder, run_line, run_on_GPU=False, timelimit=False, mem=DEFAULT_MEM):
+    def __init__(self, job_name, job_folder, run_line, run_on_GPU=False, timelimit=False, mem=DEFAULT_MEM, venv_path=None):
         self.job_name = job_name
         self.job_filename = os.path.join(job_folder, job_name + ".job")
         self.log_filename = os.path.join(job_folder, job_name + ".log")
@@ -47,6 +47,7 @@ class SlurmJob:
         self.job_id = None
         self.timelimit = timelimit
         self.mem = mem
+        self.venv_path=venv_path
 
     def send(self):
         # write a job file and run it
@@ -65,6 +66,14 @@ class SlurmJob:
                 fh.writelines("#SBATCH %s\n" %(timelimit_argument_str))
             fh.writelines("#SBATCH %s\n" %(CPU_argument_str))
             fh.writelines("#SBATCH --mem %s\n" %(self.mem))
+            if self.venv_path:
+                # Use provided virtual environment
+                fh.writelines(f"source {self.venv_path}/bin/activate\n")
+            # else:
+                # Create and activate default virtual environment
+                # fh.writelines("VENV_DIR=$HOME/my_default_virtual_env\n")
+                # fh.writelines("python -m venv $VENV_DIR\n")
+                # fh.writelines("source $VENV_DIR/bin/activate\n")
             fh.writelines(self.run_line)
 
         popen_output = os.popen("/usr/bin/sbatch %s" %(self.job_filename)).read()
@@ -125,8 +134,8 @@ class SlurmJobFactory:
         self.jobs = []
         self.old_jobs = []
 
-    def send_job(self, job_name, run_line, run_on_GPU=False, timelimit=False, mem=DEFAULT_MEM, extra=None):
-        job = SlurmJob(job_name, self.job_folder, run_line, run_on_GPU, timelimit, mem)
+    def send_job(self, job_name, run_line, run_on_GPU=False, timelimit=False, mem=DEFAULT_MEM, extra=None, venv_path=None):
+        job = SlurmJob(job_name, self.job_folder, run_line, run_on_GPU, timelimit, mem, venv_path)
         job.send()
         self.jobs.append((job, extra))
 

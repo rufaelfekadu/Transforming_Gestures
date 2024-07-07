@@ -177,7 +177,7 @@ if __name__ == '__main__':
         s = SlurmJobFactory(os.path.join('cluster_logs','train_logs'))
         ID = f'{cfg.DATA.EXP_SETUP}_{current_time}'
         # s.send_job(f"train_{ID}",f"python3 -c 'from train import main_slurm; main_slurm()' --config {args.config} --opts {args.opts} --cluster {args.cluster}")
-        s.send_job(f"train_{ID}",f"python3 -c 'print(args)' --config {args.config} --opts {args.opts} --cluster {args.cluster}")
+        s.send_job(f"train_{ID}",f"python3 -c 'print(args)' --config {args.config} --opts {args.opts} --cluster {args.cluster}",run_on_GPU=True,venv_path="env")
         print(f"Job sent with name: {ID}")
     else:
         cfg.merge_from_file(args.config)
