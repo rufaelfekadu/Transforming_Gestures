@@ -11,7 +11,7 @@ CPU_argument_str = "-c 1"
 DEFAULT_MEM = 20000
 # RAM_argument_str = "--mem 20000"
 
-GPU_partition_argument_str = "-p power-general gpu-general"
+GPU_partition_argument_str = "-p gpu-general"
 CPU_partition_argument_str = "-p power-general"
 
 # CPU_exclude_nodes_str = "--exclude=ielsc-62,ielsc-65,ielsc-68,ielsc-75,ielsc-84,ielsc-85,ielsc-110,ielsc-111,ielsc-112,ielsc-113,ielsc-114,ielsc-115,ielsc-116,ielsc-117"
