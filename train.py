@@ -148,20 +148,22 @@ def test(model, loader, criterion, device='cpu'):
             loss.update(l[1], input_t.shape[0])
 
     return loss
-def main_slurm():
-    parser = argparse.ArgumentParser(description='Finger gesture tracking')
-    parser.add_argument('--config', type=str, default='config.yaml', help='Path to config file')
-    parser.add_argument('--opts', nargs='*', default=[], help='Modify config options using the command-line')
-    parser.add_argument('--cluster', nargs=1, default=False, help='Modify config options using the command-line')
-    args = parser.parse_args()
+# def main_slurm():
+#     parser = argparse.ArgumentParser(description='Finger gesture tracking')
+#     parser.add_argument('--config', type=str, default='config.yaml', help='Path to config file')
+#     parser.add_argument('--opts', nargs='*', default=[], help='Modify config options using the command-line')
+#     parser.add_argument('--cluster', nargs=1, default=False, help='Modify config options using the command-line')
+#     args = parser.parse_args()
+#
+#     cfg.merge_from_file(args.config)
+#     cfg.merge_from_list(args.opts)
+#     # cfg.freeze()
+#
+#     cfg.SOLVER.SAVE_DIR = os.path.join(cfg.SOLVER.SAVE_DIR, cfg.DATA.EXP_SETUP)
+#     os.makedirs(cfg.SOLVER.SAVE_DIR, exist_ok=True)
+#     main(cfg)
 
-    cfg.merge_from_file(args.config)
-    cfg.merge_from_list(args.opts)
-    # cfg.freeze()
 
-    cfg.SOLVER.SAVE_DIR = os.path.join(cfg.SOLVER.SAVE_DIR, cfg.DATA.EXP_SETUP)
-    os.makedirs(cfg.SOLVER.SAVE_DIR, exist_ok=True)
-    main(cfg)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Finger gesture tracking')
     parser.add_argument('--config', type=str, default='config.yaml', help='Path to config file')
@@ -171,15 +173,17 @@ if __name__ == '__main__':
 
 
 
-    if args.cluster:
-        current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        os.makedirs(os.path.join('cluster_logs','train_logs'),exist_ok=True)
-        s = SlurmJobFactory(os.path.join('cluster_logs','train_logs'))
-        ID = f'{cfg.DATA.EXP_SETUP}_{current_time}'
-        # s.send_job(f"train_{ID}",f"python3 -c 'from train import main_slurm; main_slurm()' --config {args.config} --opts {args.opts} --cluster {args.cluster}")
-        s.send_job(f"train_{ID}",f"python3 -c 'print(args)' --config {args.config} --opts {args.opts} --cluster {args.cluster}",run_on_GPU=True,venv_path="env")
-        print(f"Job sent with name: {ID}")
-    else:
-        cfg.merge_from_file(args.config)
-        cfg.merge_from_list(args.opts)
-        main(args)
+    # if args.cluster:
+    #     current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    #     os.makedirs(os.path.join('cluster_logs','train_logs'),exist_ok=True)
+    #     s = SlurmJobFactory(os.path.join('cluster_logs','train_logs'))
+    #     ID = f'{cfg.DATA.EXP_SETUP}_{current_time}'
+    #     # s.send_job(f"train_{ID}",f"python3 -c 'from train import main_slurm; main_slurm()' --config {args.config} --opts {args.opts} --cluster {args.cluster}")
+    #     s.send_job(f"train_{ID}",f"python3 -c 'print(args)' --config {args.config} --opts {args.opts} --cluster {args.cluster}",run_on_GPU=True,venv_path="env")
+    #     print(f"Job sent with name: {ID}")
+    # else:
+    cfg.merge_from_file(args.config)
+    cfg.merge_from_list(args.opts)
+    cfg.SOLVER.SAVE_DIR = os.path.join(cfg.SOLVER.SAVE_DIR, cfg.DATA.EXP_SETUP)
+    os.makedirs(cfg.SOLVER.SAVE_DIR, exist_ok=True)
+    main(cfg)
