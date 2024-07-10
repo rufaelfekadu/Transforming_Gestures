@@ -94,7 +94,7 @@ class VViT(nn.Module):
         patch_height, patch_width = pair(self.patch_size)
 
         assert image_height % patch_height == 0 and image_width % patch_width == 0, 'Image dimensions must be divisible by the patch size.'
-        assert self.frames % self.frame_patch_size == 0, 'Frames must be divisible by frame patch size'
+        assert self.frames % self.frame_patch_size == 0, f'Frames must be divisible by frame patch size [frames: {self.frames} ,frame_patch_size{self.frame_patch_size}]'
 
         num_patches = (image_height // patch_height) * (image_width // patch_width) * (self.frames // self.frame_patch_size)
         patch_dim = patch_height * patch_width * self.frame_patch_size
