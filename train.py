@@ -72,7 +72,6 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
     headers = ['Epoch', 'Total Loss', 'TF Loss', 'Pred Loss', 'Val Loss']
     logger.info(tabulate([], headers=headers, tablefmt='plain'))
     for i in range(epochs):
-        print(f"epoch {i}")
         train_metrics = train_epoch(model, train_set, optimiser, scheduler, criterions, device)
         val_metrics = test(model, val_set, criterions[0],device)
         logger.info(tabulate([[i, *train_metrics, val_metrics]], tablefmt='plain'))
