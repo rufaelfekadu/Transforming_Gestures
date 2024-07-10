@@ -114,7 +114,7 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions, device):
         pred, z_t, z_f = model(input_t, input_f)
 
         optimiser.zero_grad()
-
+        label=label.to(device)
         # compute loss
         _, l_pred = criterions[0](pred, label)
         l_tf = criterions[1](z_t, z_f)
