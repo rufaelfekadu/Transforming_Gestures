@@ -56,6 +56,7 @@ def main(cfg):
 
     if cfg.VIS.SAVE_TEST_SET:
         # save test_set
+        print("save test")
         save_path = os.path.join(cfg.SOLVER.SAVE_DIR, 'test_set.pth')
         torch.save(dataloaders['test'].dataset, save_path)
 
@@ -95,6 +96,7 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
                 break
 
         scheduler.step(val_metrics.avg)
+
     wandb.finish()  # Close the wandb run
 
 
