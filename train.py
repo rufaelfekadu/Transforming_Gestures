@@ -9,7 +9,7 @@ import os
 import argparse
 import torch
 from tabulate import tabulate
-import datetime
+
 wandb.login()
 import torch
 
@@ -38,7 +38,7 @@ def main(cfg):
 
     # build model
     model = build_model(cfg)
-
+    model.to(device)
     # build criterion and optimiser
     criterions = build_loss(cfg)
     optimiser, scheduler = build_optimiser(cfg, model)
