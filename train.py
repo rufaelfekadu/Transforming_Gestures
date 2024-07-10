@@ -140,7 +140,7 @@ def test(model, loader, criterion, device='cpu'):
         for batch in loader:
             input_t, _, input_f, _, _, label, gesture = batch
 
-            input_t, input_f = input_t.to(device), input_f.to(device)
+            input_t, input_f, label= input_t.to(device), input_f.to(device),label.to(device)
             pred = model(input_t, input_f, return_proj=False)
 
             l = criterion(pred, label)
