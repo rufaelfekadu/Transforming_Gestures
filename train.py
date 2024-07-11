@@ -12,7 +12,16 @@ from tabulate import tabulate
 
 wandb.login()
 import torch
+import torch.nn as nn
+import torch
 
+def initialize_weights(m):
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
+    elif isinstance(m, nn.Embedding):
+        nn.init.xavier_uniform_(m.weight)
 
 def main(cfg):
     #  set seed
@@ -38,6 +47,7 @@ def main(cfg):
 
     # build model
     model = build_model(cfg)
+    model.apply(initialize_weights)
     model.to(device)
     # build criterion and optimiser
     criterions = build_loss(cfg)
@@ -66,7 +76,6 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
     best_val_loss = float('inf')
     epoch_no_improve = 0
     early_stop = False
-
     logger.info("Training started")
     #  define the headers
     headers = ['Epoch', 'Total Loss', 'TF Loss', 'Pred Loss', 'Val Loss']

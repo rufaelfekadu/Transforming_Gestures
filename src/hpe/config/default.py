@@ -39,7 +39,7 @@ _C.DATA = CN()
 _C.DATA.NAME = "emgleap"
 _C.DATA.PATH = "dataset/emgleap"
 _C.DATA.SEGMENT_LENGTH = 200
-_C.DATA.STRIDE = 20
+_C.DATA.STRIDE = 1
 _C.DATA.LABEL_COLUMNS = []
 
 _C.DATA.NORMALIZE = True
