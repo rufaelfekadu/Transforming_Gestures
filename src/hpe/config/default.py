@@ -82,7 +82,7 @@ _C.SOLVER = CN()
 #  optimizer
 _C.SOLVER.OPTIMIZER = "adam"
 _C.SOLVER.LR = 1e-3
-_C.SOLVER.WEIGHT_DECAY = 0
+_C.SOLVER.WEIGHT_DECAY = 0.
 
 # scheduler
 _C.SOLVER.PATIENCE = 5
