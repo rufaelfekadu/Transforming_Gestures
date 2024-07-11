@@ -197,11 +197,16 @@ def get_dirs_for_exp(cfg):
     if 'train' in exp_setups[cfg.DATA.EXP_SETUP]:
         for dir in exp_setups[cfg.DATA.EXP_SETUP]['train']:
             train_dirs.append(os.path.join(data_path, dir))
-            print(train_dirs[-1])
+
     if 'test' in exp_setups[cfg.DATA.EXP_SETUP]:
         for dir in exp_setups[cfg.DATA.EXP_SETUP]['test']:
             test_dirs.append(os.path.join(data_path, dir))
-
+    print("pretrain")
+    print(pretrain_dirs)
+    print("train")
+    print(train_dirs)
+    print("test")
+    print(test_dirs)
     return pretrain_dirs, train_dirs, test_dirs
 
 def build_dataloaders(cfg, pretrain=True):
