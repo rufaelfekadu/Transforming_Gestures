@@ -118,6 +118,7 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions, device):
 
     for batch in train_loader:
         input_t, _, input_f, _, _, label, gesture = batch
+        input_t = (input_t - torch.mean(input_t,dim=1,keepdim=True))/torch.std(input_t,dim=1,keepdim=True) #TODO remove
         input_t, input_f = input_t.to(device), input_f.to(device)
         n = input_t.shape[0]
 
