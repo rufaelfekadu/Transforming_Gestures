@@ -118,7 +118,7 @@ class EmgDataset(Dataset):
         return len(self.data)
     
     def __getitem__(self, idx):
-        if self.training_mode == 'pretrain':
+         if self.training_mode == 'pretrain':
             return self.data[idx], self.aug1_t[idx], self.data_f[idx], \
                 self.aug1_f[idx], self.label[idx], self.gesture_class[idx], 
     
