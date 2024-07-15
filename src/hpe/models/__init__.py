@@ -18,6 +18,6 @@ def build_optimizer(cfg, model):
         optimiser = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
         # Add ReduceLROnPlateau scheduler
-        scheduler = ReduceLROnPlateau(optimiser, 'min', patience=3, factor=0.5, verbose=True)
+        scheduler = ReduceLROnPlateau(optimiser, 'min', patience=3, factor=0.5)
 
         return optimiser, scheduler

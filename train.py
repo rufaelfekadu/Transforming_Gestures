@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from hpe.config import cfg, dump_cfg_to_yaml
-from hpe.models import EmgNet, build_model, build_optimiser
+from hpe.models import EmgNet, build_model, build_optimizer
 from hpe.data import build_dataloaders
 from hpe.loss import build_loss
 from hpe.utils.misc import set_seed, setup_logger, AverageMeter
@@ -58,7 +58,7 @@ def main(cfg):
     model.to(device)
     # build criterion and optimiser
     criterions = build_loss(cfg)
-    optimiser, scheduler = build_optimiser(cfg, model)
+    optimiser, scheduler = build_optimizer(cfg, model)
 
     #  log the configuration
     dump_cfg_to_yaml(cfg, os.path.join(cfg.SOLVER.SAVE_DIR, 'config.yaml'))
@@ -94,8 +94,7 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
 
         logger.info(tabulate([[i, *train_metrics, val_metrics]], tablefmt='plain'))
         wandb.log({'Epoch': i, 'Total Loss': train_metrics[0].avg, 'TF Loss': train_metrics[1].avg,
-                   'Pred Loss': train_metrics[2].avg, 'Val Loss': val_metrics.avg})
-
+                   'Pred Loss': train_metrics[2].avg, 'Val Loss': val_metrics.avg,"lr":scheduler.get_last_lr()})
         if val_metrics.avg < best_val_loss:
             best_val_loss = val_metrics.avg
             save_path = os.path.join(cfg.SOLVER.SAVE_DIR, 'best_model_{}.pth'.format(cfg.DATA.EXP_SETUP))
