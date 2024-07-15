@@ -137,9 +137,9 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions, device):
         optimiser.step()
 
         # update average meters
-        total_loss.update(l_total, n)
-        tf_loss.update(l_tf, n)
-        pred_loss.update(l_pred, n)
+        total_loss.update(l_total)
+        tf_loss.update(l_tf)
+        pred_loss.update(l_pred)
         # Log metrics to wandb
 
     return total_loss, tf_loss, pred_loss
@@ -157,7 +157,7 @@ def test(model, loader, criterion, device='cpu'):
 
             l = criterion(pred, label)
 
-            loss.update(l[1], input_t.shape[0])
+            loss.update(l[1])
 
     return loss
 # def main_slurm():

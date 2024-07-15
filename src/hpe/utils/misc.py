@@ -59,10 +59,10 @@ class AverageMeter:
         self.total = total
         self.value = value
     
-    def update(self, value, n):
+    def update(self, value):
         self.value = value
         self.total += value
-        self.count += n
+        self.count +=1
         self.avg = self.total/self.count
 
     def __str__(self):
