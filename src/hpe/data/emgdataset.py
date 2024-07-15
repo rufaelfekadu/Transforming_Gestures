@@ -60,7 +60,7 @@ class EmgDataset(Dataset):
 
         #  to tensor
         self.data = torch.tensor(self.data, dtype=torch.float32)
-        self.data = (self.data - torch.mean(self.data,dim=1,keepdim=True))/torch.std(self.data,dim=1,keepdim=True) #TODO remove
+        # self.data = (self.data - torch.mean(self.data,dim=1,keepdim=True))/torch.std(self.data,dim=1,keepdim=True) #TODO remove
 
         self.label = torch.tensor(self.label, dtype=torch.float32)
         self.gesture_class = torch.tensor(self.gesture_class, dtype=torch.long)
