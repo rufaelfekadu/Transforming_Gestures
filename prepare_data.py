@@ -160,6 +160,7 @@ def prepare_data(cfg):
         for dir in exp_setups[cfg.DATA.EXP_SETUP]['test']:
             data_dirs.append(os.path.join(data_path, dir))
     for data_path in tqdm(data_dirs):
+        print(f'Processing from: {data_path}')
         for edf_file, csv_file in tqdm(zip(*read_dirs(data_path))):
             file_name = ".npz"
             np_file = os.path.splitext(edf_file)[0] + file_name
