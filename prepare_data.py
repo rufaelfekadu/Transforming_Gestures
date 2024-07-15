@@ -135,6 +135,7 @@ def _prepare_data( data_path, label_path,cfg, index=0, lock=None, event=None):
 
 def prepare_data(cfg):
 
+
     seq_len = cfg.DATA.SEGMENT_LENGTH
     stride = cfg.DATA.STRIDE
 
