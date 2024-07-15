@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import os
@@ -138,17 +140,36 @@ def prepare_data(cfg):
 
     seq_len = cfg.DATA.SEGMENT_LENGTH
     stride = cfg.DATA.STRIDE
+    data_path = cfg.DATA.PATH
+    exp_path = cfg.DATA.EXP_SETUP_PATH
+    exp_setups = json.load(open(exp_path, 'r'))
 
-    for edf_file, csv_file in tqdm(zip(*read_dirs(cfg.DATA.PATH))):
-        file_name = ".npz"
-        np_file = os.path.splitext(edf_file)[0] + file_name
-        if os.path.isfile(np_file):
-            print(f'{np_file} already exists')
-            continue
-        else:
-            data = _prepare_data(edf_file, csv_file,cfg)
-            np.savez(np_file, **data)
-            print(f'Saved {np_file}')
+    if cfg.DATA.EXP_SETUP not in exp_setups.keys():
+        raise ValueError(f'Invalid experiment setup {cfg.DATA.EXP_SETUP}')
+    data_dirs = []
+
+    if 'pretrain' in exp_setups[cfg.DATA.EXP_SETUP]:
+        for dir in exp_setups[cfg.DATA.EXP_SETUP]['pretrain']:
+            data_dirs.append(os.path.join(data_path, dir))
+
+    if 'train' in exp_setups[cfg.DATA.EXP_SETUP]:
+        for dir in exp_setups[cfg.DATA.EXP_SETUP]['train']:
+            data_dirs.append(os.path.join(data_path, dir))
+
+    if 'test' in exp_setups[cfg.DATA.EXP_SETUP]:
+        for dir in exp_setups[cfg.DATA.EXP_SETUP]['test']:
+            data_dirs.append(os.path.join(data_path, dir))
+    for data_path in tqdm(data_dirs):
+        for edf_file, csv_file in tqdm(zip(data_path)):
+            file_name = ".npz"
+            np_file = os.path.splitext(edf_file)[0] + file_name
+            if os.path.isfile(np_file):
+                print(f'{np_file} already exists')
+                continue
+            else:
+                data = _prepare_data(edf_file, csv_file,cfg)
+                np.savez(np_file, **data)
+                print(f'Saved {np_file}')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Hand pose estimation")
