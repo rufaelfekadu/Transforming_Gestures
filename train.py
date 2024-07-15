@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from hpe.config import cfg, dump_cfg_to_yaml
 from hpe.models import EmgNet, build_model, build_optimiser
 from hpe.data import build_dataloaders
@@ -17,6 +19,8 @@ import torch
 
 # Add requirement for wandb core
 wandb.require("core")
+
+
 def initialize_weights(m):
     if isinstance(m, nn.Linear):
         nn.init.xavier_uniform_(m.weight)
@@ -24,6 +28,7 @@ def initialize_weights(m):
             nn.init.zeros_(m.bias)
     elif isinstance(m, nn.Embedding):
         nn.init.xavier_uniform_(m.weight)
+
 
 def main(cfg):
     #  set seed
@@ -85,12 +90,12 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
     for i in range(epochs):
         train_metrics = train_epoch(model, train_set, optimiser, scheduler, criterions, device)
         scheduler.step(train_metrics[0].avg)
-        val_metrics = test(model, val_set, criterions[0],device)
+        val_metrics = test(model, val_set, criterions[0], device)
 
         logger.info(tabulate([[i, *train_metrics, val_metrics]], tablefmt='plain'))
         wandb.log({'Epoch': i, 'Total Loss': train_metrics[0].avg, 'TF Loss': train_metrics[1].avg,
                    'Pred Loss': train_metrics[2].avg, 'Val Loss': val_metrics.avg})
-        
+
         if val_metrics.avg < best_val_loss:
             best_val_loss = val_metrics.avg
             save_path = os.path.join(cfg.SOLVER.SAVE_DIR, 'best_model_{}.pth'.format(cfg.DATA.EXP_SETUP))
@@ -129,7 +134,7 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions, device):
         pred, z_t, z_f = model(input_t, input_f)
 
         optimiser.zero_grad()
-        label=label.to(device)
+        label = label.to(device)
         # compute loss
         _, l_pred = criterions[0](pred, label)
         l_tf = criterions[1](z_t, z_f)
@@ -155,7 +160,7 @@ def test(model, loader, criterion, device='cpu'):
         for batch in loader:
             input_t, _, input_f, _, _, label, gesture = batch
 
-            input_t, input_f, label= input_t.to(device), input_f.to(device),label.to(device)
+            input_t, input_f, label = input_t.to(device), input_f.to(device), label.to(device)
             pred = model(input_t, input_f, return_proj=False)
 
             l = criterion(pred, label)
@@ -163,6 +168,8 @@ def test(model, loader, criterion, device='cpu'):
             loss.update(l[1])
 
     return loss
+
+
 # def main_slurm():
 #     parser = argparse.ArgumentParser(description='Finger gesture tracking')
 #     parser.add_argument('--config', type=str, default='config.yaml', help='Path to config file')
@@ -186,8 +193,6 @@ if __name__ == '__main__':
     parser.add_argument('--cluster', nargs=1, default=False, help='Modify config options using the command-line')
     args = parser.parse_args()
 
-
-
     # if args.cluster:
     #     current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     #     os.makedirs(os.path.join('cluster_logs','train_logs'),exist_ok=True)
@@ -200,5 +205,10 @@ if __name__ == '__main__':
     cfg.merge_from_file(args.config)
     cfg.merge_from_list(args.opts)
     cfg.SOLVER.SAVE_DIR = os.path.join(cfg.SOLVER.SAVE_DIR, cfg.DATA.EXP_SETUP)
+    # Get the current time
+    current_time = datetime.now()
+    # Format the time in a human-readable format
+    formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+    cfg.STARTING_TIME_STEMP = formatted_time
     os.makedirs(cfg.SOLVER.SAVE_DIR, exist_ok=True)
     main(cfg)
