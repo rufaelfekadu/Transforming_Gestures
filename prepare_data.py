@@ -93,7 +93,7 @@ def discritise_data(data, seq_len=150, stride=5):
         # Concatenate the strided arrays into a single array and return it
         return np.concatenate(strided_arrays, axis=0)
 
-def _prepare_data( data_path, label_path, index=0, lock=None, event=None):
+def _prepare_data( data_path, label_path,cfg, index=0, lock=None, event=None):
 
     results = {}
     data =  read_emg_v1(data_path)
@@ -107,7 +107,7 @@ def _prepare_data( data_path, label_path, index=0, lock=None, event=None):
 
     # normalise and filter the data
     data[data_columns] = StandardScaler().fit_transform(data[data_columns])
-    data[data_columns] = _filter_data(data[data_columns], fs=250,low_freq=20)
+    data[data_columns] = _filter_data(data[data_columns], fs=cfg.DATA.SAMPLING_RATE,low_freq=20)
     data[data_columns] = StandardScaler().fit_transform(data[data_columns])
 
     #  merge the data
@@ -145,7 +145,7 @@ def prepare_data(cfg):
             print(f'{np_file} already exists')
             continue
         else:
-            data = _prepare_data(edf_file, csv_file)
+            data = _prepare_data(edf_file, csv_file,cfg)
             np.savez(np_file, **data)
             print(f'Saved {np_file}')
 
