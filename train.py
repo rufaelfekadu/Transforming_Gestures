@@ -106,7 +106,7 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
                 'data_setup': cfg.DATA.EXP_SETUP,
             }
             torch.save(to_save, save_path)
-
+            epoch_no_improve=0
         else:
             epoch_no_improve += 1
             if epoch_no_improve > cfg.SOLVER.PATIENCE:

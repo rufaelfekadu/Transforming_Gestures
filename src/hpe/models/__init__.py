@@ -10,7 +10,7 @@ def build_model(cfg):
     args.update(get_param(cfg, 'TRANSFORMER'))
     return EmgNet(**args)
 
-def build_optimiser(cfg, model):
+def build_optimizer(cfg, model):
     if cfg.SOLVER.OPTIMIZER == "adam":
         learning_rate = cfg.SOLVER.LR
         weight_decay = cfg.SOLVER.WEIGHT_DECAY
