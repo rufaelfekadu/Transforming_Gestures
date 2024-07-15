@@ -206,3 +206,14 @@ def plot_scatter_with_pca(data, labels, legend):
 
     return fig, None
 
+def evaluate_angels_for_joints(pred, true_labels):
+    # Assuming pred and true_labels are tensors of shape [batch_size, num_angles]
+    pred_angles = torch.atan2(torch.sin(pred), torch.cos(pred))  # Convert predictions to angles in radians
+    true_angles = torch.atan2(torch.sin(true_labels), torch.cos(true_labels))  # Convert true labels to angles in radians
+    return circular_distance(pred_angles, true_angles).mean()  # Return circular distance for each angle dimension
+
+def circular_distance(a1, a2):
+    """ Calculate the minimal circular distance between two angles in radians. """
+    diff = torch.abs(a1 - a2)
+    diff = torch.min(diff, 2 * np.pi - diff)  # Account for circularity
+    return diff

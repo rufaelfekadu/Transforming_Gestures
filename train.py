@@ -4,7 +4,7 @@ from hpe.config import cfg, dump_cfg_to_yaml
 from hpe.models import EmgNet, build_model, build_optimizer
 from hpe.data import build_dataloaders
 from hpe.loss import build_loss
-from hpe.utils.misc import set_seed, setup_logger, AverageMeter
+from hpe.utils.misc import set_seed, setup_logger, AverageMeter,evaluate_angels_for_joints
 import wandb  # Import wandb
 from utils.slurm_job import SlurmJobFactory
 import os
@@ -152,11 +152,14 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions, device):
     return total_loss, tf_loss, pred_loss
 
 
-def test(model, loader, criterion, device='cpu'):
+def test(model, loader, criterion, device='cpu',evaluate_labels=None):
     loss = AverageMeter()
     model.eval()
+    total_angle_diff = None  # To aggregate angle differences
+    length_counter=0
     with torch.no_grad():
         for batch in loader:
+            length_counter+=1
             input_t, _, input_f, _, _, label, gesture = batch
 
             input_t, input_f, label = input_t.to(device), input_f.to(device), label.to(device)
@@ -165,7 +168,15 @@ def test(model, loader, criterion, device='cpu'):
             l = criterion(pred, label)
 
             loss.update(l[1])
-
+            if evaluate_labels is not None:
+                angle_diff = evaluate_angels_for_joints(pred, label)
+                if total_angle_diff is None:
+                    total_angle_diff = angle_diff
+                else:
+                    total_angle_diff += angle_diff.sum().item()  # Sum up all angle differences
+        if evaluate_labels is not None:
+            total_angle_diff=total_angle_diff/length_counter
+            wandb.log({v:total_angle_diff[i].item() for i,v in enumerate(evaluate_labels)})
     return loss
 
 
