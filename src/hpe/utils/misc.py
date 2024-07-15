@@ -63,7 +63,7 @@ class AverageMeter:
         self.value = value
         self.total += value
         self.count += n
-        self.avg = self.total/n
+        self.avg = self.total/self.count
 
     def __str__(self):
         return f'{round(float(self.avg), 4)}'.ljust(10)
