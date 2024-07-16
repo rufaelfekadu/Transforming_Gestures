@@ -168,7 +168,7 @@ def test(model, loader, criterion, device='cpu'):
 
             loss.update(l[1])
             loss_angles.update(l[0])
-        wandb.log({v: loss_angles.avg[i]  for i, v in enumerate(loader.dataset.dataset.label_columns)})
+        wandb.log({v: loss_angles.avg[i]  for i, v in enumerate(loader.dataset.dataset.label_columns)}, commit=False)
     return loss
 
 
