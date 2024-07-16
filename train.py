@@ -76,6 +76,7 @@ def main(cfg):
         print("save test")
         save_path = os.path.join(cfg.SOLVER.SAVE_DIR, 'test_set.pth')
         torch.save(dataloaders['test'].dataset, save_path)
+    wandb.finish()  # Close the wandb run
 
 
 def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logger, wandb, device='cpu'):
@@ -114,7 +115,6 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
 
         scheduler.step(val_metrics.avg)
 
-    wandb.finish()  # Close the wandb run
 
 
 def train_epoch(model, train_loader, optimiser, scheduler, criterions, device):
