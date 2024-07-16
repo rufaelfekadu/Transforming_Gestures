@@ -24,7 +24,8 @@ class NeuroLoss(_Loss):
             target = target.view(B,-1)
         
         assert input.shape == target.shape, "Input and target must have the same shape"
-
+        input = torch.cos(input)
+        target = torch.cos(target)
         loss = self.metric(input, target, reduction='none')
         
         # Apply different weights for different variables if weights are provided

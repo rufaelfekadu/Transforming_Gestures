@@ -236,7 +236,6 @@ def build_dataloaders(cfg, pretrain=True):
     cfg.MODEL.OUTPUT_SIZE = train_set.label.shape[-1]
 
     rep = np.random.randint(1,5)
-    label_columns = train_set.label_columns
 
     #  use one of the repititions as validation
     unique_gestures = np.unique(train_set.gesture_mapping_class)
@@ -266,7 +265,6 @@ def build_dataloaders(cfg, pretrain=True):
     dataloaders['val'] = torch.utils.data.DataLoader(val_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=False)
     dataloaders['test'] = torch.utils.data.DataLoader(test_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=False)
     # dataloaders['test_2'] = torch.utils.data.DataLoader(test_set_2, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=False, num_workers=num_workers, persistent_workers=True, drop_last=True)
-    dataloaders['label_columns']=label_columns
 
     return dataloaders
 

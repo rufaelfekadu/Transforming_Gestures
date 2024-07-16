@@ -94,7 +94,7 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
 
         logger.info(tabulate([[i, *train_metrics, val_metrics]], tablefmt='plain'))
         wandb.log({'Epoch': i, 'Total Loss': train_metrics[0].avg, 'TF Loss': train_metrics[1].avg,
-                   'Pred Loss': train_metrics[2].avg, 'Val Loss': val_metrics.avg,"lr":scheduler.get_last_lr()})
+                   'Pred Loss': train_metrics[2].avg, 'Val Loss': val_metrics.avg,"lr": scheduler.get_lr()})
         if val_metrics.avg < best_val_loss:
             best_val_loss = val_metrics.avg
             save_path = os.path.join(cfg.SOLVER.SAVE_DIR, 'best_model_{}.pth'.format(cfg.DATA.EXP_SETUP))
@@ -152,14 +152,12 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions, device):
     return total_loss, tf_loss, pred_loss
 
 
-def test(model, loader, criterion, device='cpu',evaluate_labels=None):
+def test(model, loader, criterion, device='cpu'):
     loss = AverageMeter()
+    loss_angles = AverageMeter()
     model.eval()
-    total_angle_diff = None  # To aggregate angle differences
-    length_counter=0
     with torch.no_grad():
         for batch in loader:
-            length_counter+=1
             input_t, _, input_f, _, _, label, gesture = batch
 
             input_t, input_f, label = input_t.to(device), input_f.to(device), label.to(device)
@@ -168,15 +166,8 @@ def test(model, loader, criterion, device='cpu',evaluate_labels=None):
             l = criterion(pred, label)
 
             loss.update(l[1])
-            if evaluate_labels is not None:
-                angle_diff = evaluate_angels_for_joints(pred, label)
-                if total_angle_diff is None:
-                    total_angle_diff = angle_diff
-                else:
-                    total_angle_diff += angle_diff.sum().item()  # Sum up all angle differences
-        if evaluate_labels is not None:
-            total_angle_diff=total_angle_diff/length_counter
-            wandb.log({v:total_angle_diff[i].item() for i,v in enumerate(evaluate_labels)})
+            loss_angles.upadate(l[0])
+        wandb.log({v: loss_angles.avg[i]  for i, v in enumerate(loader.dataset.dataset.label_columns)})
     return loss
 
 

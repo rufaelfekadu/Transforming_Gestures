@@ -53,16 +53,19 @@ def setup_logger(cfg, log_type='train', setup_file=True, setup_console=True):
     return logger
 
 class AverageMeter:
-    def __init__(self, value=0, count=0, total=0, avg=0):
+    def __init__(self, value=None, count=0, total=None, avg=0):
         self.count=count
         self.avg = avg
         self.total = total
         self.value = value
     
     def update(self, value):
-        self.value = value
-        self.total += value
         self.count +=1
+        self.value = value
+        if self.total is None:
+            self.total = value
+        else:
+            self.total += value
         self.avg = self.total/self.count
 
     def __str__(self):
@@ -206,14 +209,5 @@ def plot_scatter_with_pca(data, labels, legend):
 
     return fig, None
 
-def evaluate_angels_for_joints(pred, true_labels):
-    # Assuming pred and true_labels are tensors of shape [batch_size, num_angles]
-    pred_angles = torch.atan2(torch.sin(pred), torch.cos(pred))  # Convert predictions to angles in radians
-    true_angles = torch.atan2(torch.sin(true_labels), torch.cos(true_labels))  # Convert true labels to angles in radians
-    return circular_distance(pred_angles, true_angles).mean()  # Return circular distance for each angle dimension
 
-def circular_distance(a1, a2):
-    """ Calculate the minimal circular distance between two angles in radians. """
-    diff = torch.abs(a1 - a2)
-    diff = torch.min(diff, 2 * np.pi - diff)  # Account for circularity
-    return diff
+
