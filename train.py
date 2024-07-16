@@ -4,7 +4,7 @@ from hpe.config import cfg, dump_cfg_to_yaml
 from hpe.models import EmgNet, build_model, build_optimizer
 from hpe.data import build_dataloaders
 from hpe.loss import build_loss
-from hpe.utils.misc import set_seed, setup_logger, AverageMeter,evaluate_angels_for_joints
+from hpe.utils.misc import set_seed, setup_logger, AverageMeter
 import wandb  # Import wandb
 from utils.slurm_job import SlurmJobFactory
 import os
