@@ -7,7 +7,7 @@ metric_dict = {
     'MAE': nn.functional.l1_loss,
     'SmoothL1': nn.functional.smooth_l1_loss,
     'CrossEntropy': nn.functional.cross_entropy,
-    'CosineSim': lambda x,y: 1.-torch.cos(x-y)
+    'CosineSim': lambda x,y,params: 1.-torch.cos(x-y)
 }
 
 class NeuroLoss(_Loss):
