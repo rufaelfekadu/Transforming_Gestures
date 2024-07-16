@@ -7,6 +7,7 @@ metric_dict = {
     'MAE': nn.functional.l1_loss,
     'SmoothL1': nn.functional.smooth_l1_loss,
     'CrossEntropy': nn.functional.cross_entropy,
+    'CosineSim': lambda x,y: 1.-torch.cos(x-y)
 }
 
 class NeuroLoss(_Loss):
@@ -24,8 +25,7 @@ class NeuroLoss(_Loss):
             target = target.view(B,-1)
         
         assert input.shape == target.shape, "Input and target must have the same shape"
-        input = torch.cos(input)
-        target = torch.cos(target)
+
         loss = self.metric(input, target, reduction='none')
         
         # Apply different weights for different variables if weights are provided
