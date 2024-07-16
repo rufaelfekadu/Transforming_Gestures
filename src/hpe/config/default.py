@@ -73,7 +73,7 @@ _C.LOSS = CN()
 _C.LOSS.TEMPRATURE = 1
 _C.LOSS.USE_COSINE = True
 _C.LOSS.METRIC = 'MAE'
-_C.LOSS.LAMBDA = 0.25
+_C.LOSS.LAMBDA = 0.001
 
 # -----------------------------------------------------------------------------
 # Solver
@@ -96,8 +96,8 @@ _C.SOLVER.SAVE_DIR = "output/"
 _C.SOLVER.PRETRAINED_PATH = "output/exp1"
 _C.SOLVER.RESUME = False
 
-_C.SOLVER.REDUCE_LR_PATIENCE = 300
-_C.SOLVER.REDUCE_LR_FACTOR = 0.75
+_C.SOLVER.REDUCE_LR_PATIENCE = 3
+_C.SOLVER.REDUCE_LR_FACTOR = 0.5
 
 # -----------------------------------------------------------------------------
 #  Visualization
