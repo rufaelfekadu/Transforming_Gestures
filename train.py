@@ -106,9 +106,12 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
             to_save = {
                 'model_state_dict': model.state_dict(),
                 'optimiser': optimiser.state_dict(),
-                'scheduler': scheduler.state_dict() if not None else dict(),
+                'scheduler':None,
                 'data_setup': cfg.DATA.EXP_SETUP,
             }
+            if scheduler:
+                to_save['scheduler'] = scheduler.state_dict()
+
             torch.save(to_save, save_path)
             epoch_no_improve=0
         else:
