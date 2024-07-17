@@ -173,7 +173,7 @@ def test(model, loader, criterion, device='cpu'):
 
             loss.update(l[1])
 
-            B, C = label.shape
+            B, C = pred.shape
             label = label[:,-1,:] # only take the last time step
             target = label.view(B,-1)
             data_angles_per_joint =torch.remainder(pred-target,360)
