@@ -93,6 +93,8 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
         if scheduler:
             scheduler.step(train_metrics[0].avg)
             wandb.log({"lr": scheduler.get_last_lr()[0]},commit=False)
+        else:
+            wandb.log({"lr":cfg.SOLVER.LR},commit=False)
         val_metrics = test(model, val_set, criterions[0], device)
 
         logger.info(tabulate([[i, *train_metrics, val_metrics]], tablefmt='plain'))

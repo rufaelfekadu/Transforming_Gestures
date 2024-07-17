@@ -17,7 +17,9 @@ def build_optimizer(cfg, model):
         weight_decay = cfg.SOLVER.WEIGHT_DECAY
         optimiser = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
-        # Add ReduceLROnPlateau scheduler
-        scheduler = ReduceLROnPlateau(optimiser, 'min', patience=cfg.SOLVER.REDUCE_LR_PATIENCE, factor=cfg.SOLVER.REDUCE_LR_FACTOR,threshold=1e-3,cooldown=5)
+        scheduler=None
+        if cfg.SOLVER.REDUCE_LR_FACTOR<1:
+            # Add ReduceLROnPlateau scheduler
+            scheduler = ReduceLROnPlateau(optimiser, 'min', patience=cfg.SOLVER.REDUCE_LR_PATIENCE, factor=cfg.SOLVER.REDUCE_LR_FACTOR,threshold=1e-3,cooldown=5)
 
         return optimiser, scheduler
