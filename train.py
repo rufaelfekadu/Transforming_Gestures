@@ -54,7 +54,7 @@ def main(cfg):
 
     # build model
     model = build_model(cfg)
-    model.apply(initialize_weights)
+    # model.apply(initialize_weights)
     model.to(device)
     # build criterion and optimiser
     criterions = build_loss(cfg)
