@@ -89,7 +89,7 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
     headers = ['Epoch', 'Total Loss', 'TF Loss', 'Pred Loss', 'Val Loss']
     logger.info(tabulate([], headers=headers, tablefmt='plain'))
     for i in range(epochs):
-        train_metrics = train_epoch(model, train_set, optimiser, scheduler, criterions, device)
+        train_metrics = train_epoch(model, train_set, optimiser, scheduler, criterions, cfg.LOSS.LAMBDA,device)
         if scheduler:
             scheduler.step(train_metrics[0].avg)
             wandb.log({"lr": scheduler.get_last_lr()[0]},commit=False)
@@ -124,13 +124,12 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
 
 
 
-def train_epoch(model, train_loader, optimiser, scheduler, criterions, device):
+def train_epoch(model, train_loader, optimiser, scheduler, criterions,lamb, device):
     model.train()
 
     total_loss = AverageMeter()
     tf_loss = AverageMeter()
     pred_loss = AverageMeter()
-    lamb = 0.25
 
     for batch in train_loader:
         input_t, _, input_f, _, _, label, gesture = batch
