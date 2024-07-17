@@ -120,7 +120,7 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
                 logger.info("Early stopping at epoch {}".format(i))
                 break
 
-        scheduler.step(val_metrics.avg)
+        # scheduler.step(val_metrics.avg)
 
 
 
