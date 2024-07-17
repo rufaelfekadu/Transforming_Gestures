@@ -172,7 +172,11 @@ def test(model, loader, criterion, device='cpu'):
             l = criterion(pred, label)
 
             loss.update(l[1])
-            data_angles_per_joint =torch.remainder(pred-label,360)
+
+            B, C = label.shape
+            label = label[:,-1,:] # only take the last time step
+            target = label.view(B,-1)
+            data_angles_per_joint =torch.remainder(pred-target,360)
             loss_angles.update(data_angles_per_joint)
         wandb.log({v: loss_angles.avg[i]  for i, v in enumerate(loader.dataset.dataset.label_columns)}, commit=False)
         wandb.log({'Total difference': torch.mean(loss_angles.avg)},commit=False)

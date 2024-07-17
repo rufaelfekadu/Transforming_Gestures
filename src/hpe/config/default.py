@@ -73,7 +73,7 @@ _C.LOSS = CN()
 _C.LOSS.TEMPRATURE = 1
 _C.LOSS.USE_COSINE = True
 _C.LOSS.METRIC = 'MAE'
-_C.LOSS.LAMBDA = 0.001
+_C.LOSS.LAMBDA = 0.25
 
 # -----------------------------------------------------------------------------
 # Solver
