@@ -25,8 +25,8 @@ class EmgDataset(Dataset):
         merged_data = []
 
         for i, np_file in tqdm(enumerate(npz_files), desc='Loading data'):
-            # file_name = ".npz"
-            # np_file = os.path.splitext(npz_files)[0] + file_name
+            file_name = ".npz"
+            np_file = os.path.splitext(np_file)[0] + file_name
             if os.path.isfile(np_file):
                 # load dataset
                 loaded = np.load(np_file,  allow_pickle=True)
