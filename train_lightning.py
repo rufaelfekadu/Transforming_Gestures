@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import argparse
 import os
 from hpe.config import cfg
-from hpe.models import EmgNet
+from hpe.models import EmgNet,build_model, build_optimizer
 from hpe.loss import build_loss
 
 from pytorch_lightning.loggers import WandbLogger
