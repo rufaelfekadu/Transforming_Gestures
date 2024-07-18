@@ -23,7 +23,7 @@ class EmgDataset(Dataset):
         self.training_mode = training_mode
         npz_files = read_dirs(data_paths,['.npz'])
         merged_data = []
-
+        print(npz_files)
         for i, np_file in tqdm(enumerate(npz_files), desc='Loading data'):
             # file_name = ".npz"
             # np_file = os.path.splitext(np_file)[0] + file_name
