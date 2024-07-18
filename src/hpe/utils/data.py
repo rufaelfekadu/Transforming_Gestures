@@ -32,7 +32,7 @@ def strided_array(arr, window_size, stride):
     return np.lib.stride_tricks.as_strided(arr, shape=shape, strides=strides)
 
 
-def read_dirs(data_path):
+def read_dirs(data_path, suffixes = ('.edf', '.csv')):
 
     if isinstance(data_path, str):
         data_path = [data_path]
@@ -43,12 +43,11 @@ def read_dirs(data_path):
             raise ValueError(f'{path} is not a directory')
         else:
             print(f'Reading data from {path}')
-            all_files += [f for f in glob.glob(os.path.join(path, '**/*'), recursive=True) if os.path.splitext(f)[1] in ['.edf', '.csv']]
-    
-    edf_files = sorted([file for file in all_files if file.endswith('.edf')])
-    csv_files = sorted([file for file in all_files if file.endswith('.csv')])
-
-    return edf_files, csv_files
+            all_files += [f for f in glob.glob(os.path.join(path, '**/*'), recursive=True) if os.path.splitext(f)[1] in suffixes]
+    suffixes_files = []
+    for i in suffixes:
+        suffixes_files.append(sorted([file for file in all_files if file.endswith(i)]))
+    return suffixes_files
 
 def train_test_gesture_split(dataset, test_gestures,include_train=True):
 

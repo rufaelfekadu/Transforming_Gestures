@@ -21,12 +21,12 @@ class EmgDataset(Dataset):
         self.seq_len = cfg.DATA.SEGMENT_LENGTH
         self.stride = cfg.DATA.STRIDE
         self.training_mode = training_mode
-        edf_files, _ = read_dirs(data_paths)
+        npz_files = read_dirs(data_paths,'.npz')
         merged_data = []
 
-        for i, edf_file in tqdm(enumerate(edf_files), desc='Loading data'):
+        for i, npz_files in tqdm(enumerate(npz_files), desc='Loading data'):
             file_name = ".npz"
-            np_file = os.path.splitext(edf_file)[0] + file_name
+            np_file = os.path.splitext(npz_files)[0] + file_name
             if os.path.isfile(np_file):
                 # load dataset
                 loaded = np.load(np_file,  allow_pickle=True)
