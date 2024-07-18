@@ -36,7 +36,7 @@ def main(cfg):
                                      'pretrain/checkpoints_pretrain/best_pretrained.ckpt')
         model = EmgNet.load_from_checkpoint(pretrain_path)
     except:
-        model = EmgNet(cfg=cfg)
+        model = build_model(cfg=cfg)
 
     model.stage = 'hpe'
     early_stop_callback = pl.callbacks.EarlyStopping(monitor='val_loss_c', patience=cfg.SOLVER.PATIENCE)
