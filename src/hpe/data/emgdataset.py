@@ -21,7 +21,7 @@ class EmgDataset(Dataset):
         self.seq_len = cfg.DATA.SEGMENT_LENGTH
         self.stride = cfg.DATA.STRIDE
         self.training_mode = training_mode
-        npz_files = read_dirs(data_paths,['.npz'])
+        npz_files = read_dirs(data_paths,['.npz'])[0]
         merged_data = []
         print(npz_files)
         for i, np_file in tqdm(enumerate(npz_files), desc='Loading data'):
