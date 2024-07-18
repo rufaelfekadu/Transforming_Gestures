@@ -2,7 +2,7 @@ import torch
 from pytorch_lightning import loggers as pl_loggers
 import pytorch_lightning as pl
 from hpe.trainer.trainer import EmgNet
-
+from hpe.models import EmgNet, build_model, build_optimizer
 from hpe.config import cfg
 from hpe.data.emgdataset import build_dataloaders
 import argparse
