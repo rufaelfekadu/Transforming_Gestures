@@ -38,6 +38,7 @@ def read_dirs(data_path):
         data_path = [data_path]
     all_files = []
     for path in data_path:
+        print(path)
         if not os.path.isdir(path):
             raise ValueError(f'{path} is not a directory')
         else:
