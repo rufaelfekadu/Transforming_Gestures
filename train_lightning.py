@@ -27,7 +27,7 @@ def main(cfg):
     # Build logger
     csv_logger = pl_loggers.CSVLogger(cfg.SOLVER.LOG_DIR, name='csv_logs')
     tb_logger = pl_loggers.TensorBoardLogger(cfg.SOLVER.LOG_DIR, name='tb_logs')
-    wandb_logger = WandbLogger(name="my_model", project="my_project", log_model=True)
+    wandb_logger = WandbLogger(project='gesture-tracking', log_model=True)
     early_stop_callback = pl.callbacks.EarlyStopping(monitor='classification_val_loss', patience=cfg.SOLVER.PATIENCE)
 
     print('Finetuning model')
@@ -46,7 +46,7 @@ def main(cfg):
     trainer_finetune = pl.Trainer(
         default_root_dir=os.path.join(cfg.SOLVER.LOG_DIR, 'checkpoints_finetune'),
         max_epochs=cfg.SOLVER.NUM_EPOCHS,
-        logger=[csv_logger, tb_logger, wandb_logger],
+        logger=[tb_logger, wandb_logger],
         check_val_every_n_epoch=1,
         log_every_n_steps=len(model.train_loader),
         # limit_val_batches=0.5,
