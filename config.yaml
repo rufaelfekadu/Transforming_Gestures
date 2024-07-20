@@ -6,6 +6,5 @@ DATA:
 
 SOLVER:
   LOG_DIR: 'outputs/debug_2'
-  CHECKPOINT_PATH: 'outputs/spice_all/exp6/hpe/tb_logs/version_0/checkpoints/epoch=99-step=6000.ckpt'
   NUM_EPOCHS: 300
   BATCH_SIZE: 32
