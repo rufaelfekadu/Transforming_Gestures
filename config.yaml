@@ -1,0 +1,11 @@
+DATA:
+  PATH: /yaelhalab/luxembourg/finger_gesture/data
+  EXP_SETUP: 'exp1'
+  SEGMENT_LENGTH: 100
+  STRIDE: 10
+
+SOLVER:
+  LOG_DIR: 'outputs/debug_2'
+  CHECKPOINT_PATH: 'outputs/spice_all/exp6/hpe/tb_logs/version_0/checkpoints/epoch=99-step=6000.ckpt'
+  NUM_EPOCHS: 300
+  BATCH_SIZE: 32
