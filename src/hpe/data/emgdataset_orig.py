@@ -14,7 +14,7 @@ from hpe.data.transforms import JitterTransform, FrequencyTranform, RMSTransform
 
 
 class EmgDataset(Dataset):
-    def __init__(self, cfg, data_paths, training_mode='pretrain', transforms=(None, None, None)):
+    def __init__(self, cfg, data_paths, training_mode='pretrain', transforms=(None, None, None),pre_processing_transform=None):
 
         
         self.transform_t, self.transform_f, self.transform_c = transforms
@@ -31,7 +31,10 @@ class EmgDataset(Dataset):
                 # load dataset
                 loaded = np.load(np_file,  allow_pickle=True)
                 data = {key: loaded[key] for key in loaded.files}
-                d = self.discritise_data(data['data'], seq_len=self.seq_len, stride=self.stride)
+                data_data = data['data']
+                if pre_processing_transform:
+                    data_data[:,0:len(data['data_columns'])] = pre_processing_transform(data_data[:,0:len(data['data_columns'])])
+                d = self.discritise_data(data_data, seq_len=self.seq_len, stride=self.stride)
                 merged_data.append(d)
             else:
                 # skip and remove merged data at index i
@@ -68,7 +71,12 @@ class EmgDataset(Dataset):
 
         #  fft 
         self.data_f = fft(self.data, dim=1).abs()
-        # self.data_c = self.transform_c(self.data).float()
+        # self.data_f = rfft(self.data, dim=1)
+
+        if self.transform_c:
+            self.data_c = self.transform_c(self.data).float()
+        else:
+            self.data_c = self.data
         
         if self.training_mode == 'pretrain':
             # time augmentations apply jitter augmentation
@@ -76,8 +84,8 @@ class EmgDataset(Dataset):
             # frequency augmentations 
             self.aug1_f = self.transform_f(self.data_f).float()
         
-        # elif self.training_mode == 'classify':
-        #     self.data = self.transform_c(self.data).float()
+        elif self.training_mode == 'classify':
+            self.data = self.transform_c(self.data).float()
 
     def discritise_without_grouping(self, data, seq_len=150, stride=5):
         # Initialize an empty list to store the strided arrays
@@ -129,7 +137,7 @@ class EmgDataset(Dataset):
                 0, 0, self.gesture_class[idx]
         else:
             return self.data[idx], 0, self.data_f[idx], \
-                0, 0, self.label[idx], self.gesture_class[idx] 
+                0, self.data_c[idx], self.label[idx], self.gesture_class[idx]
 
 
 #  read exp_setups from json file
@@ -210,26 +218,24 @@ def build_dataloaders(cfg, pretrain=True):
     pretrain_dirs, train_dirs, test_dirs = get_dirs_for_exp(cfg)
     dataloaders = {}
     num_workers = cfg.SOLVER.NUM_WORKERS
-
+    pre_processing_transform = Compose([NormalizeTransform(norm_type='zscore')])
     # transforms
-    transforms_c = Compose([RMSTransform(),
-                            NormalizeTransform(norm_type='zscore')])
-    # transforms_t = Compose([JitterTransform(scale=cfg.DATA.JITTER_SCALE)])
-    # transforms_f = Compose([FrequencyTranform(fs=cfg.DATA.EMG.SAMPLING_RATE, pertub_ratio=cfg.DATA.FREQ_PERTUB_RATIO)])
-    # transforms = (None, None, transforms_c)
-    transforms = (None, None, None)
+    transforms_c = Compose([RMSTransform()])
+    transforms_t = Compose([JitterTransform(scale=cfg.DATA.JITTER_SCALE)])
+    transforms_f = Compose([FrequencyTranform(fs=cfg.DATA.EMG.SAMPLING_RATE, pertub_ratio=cfg.DATA.FREQ_PERTUB_RATIO)])
+
+
     data_paths = pretrain_dirs
     try:
         if pretrain:
             pretrain_set = EmgDataset(cfg, data_paths, training_mode='pretrain',
-                                      transforms = transforms)
+                                transforms = (transforms_t, transforms_f, transforms_c),pre_processing_transform=pre_processing_transform)
             dataloaders['pretrain'] = torch.utils.data.DataLoader(pretrain_set, batch_size=cfg.SOLVER.BATCH_SIZE, shuffle=True, drop_last=True, num_workers=num_workers, persistent_workers=True)
 
     except:
         print('No pretrain data found')
         dataloaders['pretrain'] = None
-    train_set = EmgDataset(cfg, train_dirs, training_mode='hpe',
-                           transforms=transforms)
+    train_set = EmgDataset(cfg, train_dirs, training_mode='hpe', transforms=(transforms_t, transforms_f, transforms_c),pre_processing_transform=pre_processing_transform)
     cfg.DATA.LABEL_COLUMNS = train_set.label_columns.tolist()
     cfg.DATA.NUM_CLASSES = train_set.num_classes
     cfg.MODEL.FRAMES = train_set.data.shape[1]

@@ -7,14 +7,15 @@ import glob
 import pandas as pd
 import mne
 from scipy import signal
-
+import torch
 from datetime import datetime
-
+from typing import List,Tuple, Union,Any
 from concurrent.futures import ThreadPoolExecutor
 import time
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
+import numpy as np
 
 
 class ExpTimes:
@@ -25,6 +26,73 @@ class ExpTimes:
 
 
 
+class StridedArrayConcatenator:
+    def __init__(self, arrays):
+        self.arrays = arrays
+        self.shape = self._compute_shape(arrays)
+
+    def _compute_shape(self, arrays):
+        """
+        Compute the shape of the concatenated array.
+        """
+        first_shape = arrays[0].shape[1:]
+        for arr in arrays:
+            if arr.shape[1:] != first_shape:
+                raise ValueError("All arrays must have the same shape except for the first dimension.")
+        total_length = sum(arr.shape[0] for arr in arrays)
+        return (total_length,) + first_shape
+
+    def _find_array_and_index(self, index):
+        """
+        Find the corresponding array and index within that array for a given index in the concatenated view.
+        """
+        if index < 0:
+            index += self.shape[0]
+        if index < 0 or index >= self.shape[0]:
+            raise IndexError("Index out of range.")
+
+        for arr in self.arrays:
+            if index < arr.shape[0]:
+                return arr, index
+            index -= arr.shape[0]
+        raise IndexError("Index out of range.")  # This should never happen
+
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            array, local_index = self._find_array_and_index(index)
+            return array[local_index]
+        elif isinstance(index, slice):
+            start, stop, step = index.indices(self.shape[0])
+            result = []
+            for i in range(start, stop, step):
+                array, local_index = self._find_array_and_index(i)
+                result.append(array[local_index])
+            return np.array(result)
+        elif isinstance(index, tuple):
+            if len(index) == 0:
+                return self
+            if isinstance(index[0], slice):
+                start, stop, step = index[0].indices(self.shape[0])
+                result = []
+                for i in range(start, stop, step):
+                    array, local_index = self._find_array_and_index(i)
+                    result.append(array[(local_index,) + index[1:]])
+                return np.array(result)
+            elif isinstance(index[0], int):
+                array, local_index = self._find_array_and_index(index[0])
+                return array[(local_index,) + index[1:]]
+            else:
+                raise TypeError("Invalid index type.")
+        elif index is Ellipsis:
+            return self[:]
+        else:
+            raise TypeError("Invalid index type.")
+
+    def __len__(self):
+        return self.shape[0]
+
+    def __repr__(self):
+        return f"StridedArrayConcatenator(shape={self.shape})"
 def strided_array(arr, window_size, stride):
     N, C = arr.shape    
     shape = ((N - window_size)//stride + 1, window_size, C)
@@ -60,9 +128,12 @@ def train_test_gesture_split(dataset, test_gestures,include_train=True):
     else:
         g = dataset.gestures
     for idx, gesture in enumerate(g):
-
-        if 'rest' in dataset.gesture_mapping[gesture.item()]:
-            continue
+        try:
+            if 'rest' in dataset.gesture_mapping[gesture]:
+                continue
+        except Exception as e:
+            print(gesture.item(),flush=True)
+            raise e
         # elif 'kaf' in dataset.gesture_mapping[gesture.item()]:
         #     continue
 
@@ -76,8 +147,8 @@ def train_test_gesture_split(dataset, test_gestures,include_train=True):
             train_idx.append(idx)
     
     # add 20% of the test gestures to the train set
-    test_idx, to_append = train_test_split(test_idx, test_size=0.2, shuffle=True, stratify=g[test_idx])
-    train_idx.extend(to_append)
+    # test_idx, to_append = train_test_split(test_idx, test_size=0.2, shuffle=True, stratify=g[test_idx])
+    # train_idx.extend(to_append)
 
     train_idx, val_idx = train_test_split(train_idx, test_size=0.15, shuffle=True)
     train_set = Subset(dataset, train_idx)

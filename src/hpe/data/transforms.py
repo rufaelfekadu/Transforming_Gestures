@@ -76,9 +76,12 @@ class StandardScalerTransform:
 
 class RMSTransform:
     def __call__(self, X):
-        #  input shape (N, S, C) reshape to (N,1,4,4)
-        return torch.sqrt(torch.mean(X**2, axis=1)).view(-1, 1, 4, 4)
-    
+        #  input shape (S, C) reshape to (1,4,4)
+        if sum(X.shape)==16:
+            return torch.sqrt(torch.mean(X**2, axis=0)).view(1, 4, 4)
+        else:
+            return torch.sqrt(torch.mean(X**2, axis=1)).view(-1,1, 4, 4)
+
 class NormalizeTransform:
     def __init__(self, norm_type='zscore'):
         self.norm_type = norm_type
@@ -86,7 +89,10 @@ class NormalizeTransform:
     def __call__(self, X):
         if self.norm_type == 'none':  # no normalization, fast return for online performance
             return X
+        is_numpy = isinstance(X, np.ndarray)
 
+        if is_numpy:
+            X = torch.tensor(X)
         axis = 0  # normalize over the channels and samples
 
         if self.norm_type == 'zscore':
@@ -112,6 +118,8 @@ class NormalizeTransform:
             X = X / max_
         else:
             raise ValueError('Invalid normalization method for EMG data')
+        if is_numpy:
+            X = X.numpy()
         return X
     
 class ReshapeTransform:
