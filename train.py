@@ -34,7 +34,13 @@ def main(cfg):
     #  set seed
     set_seed(cfg.SEED)
     # Initialize wandb
-    wandb.init(project='gesture-tracking', config=cfg)
+    # Get the current date and time
+    current_datetime = datetime.now()
+
+    # Format the date and time as a string
+    formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H:%M:%S")
+
+    wandb.init(name=f'{cfg.NAME}_{cfg.DATA.EXP_SETUP}_{formatted_datetime}',project='gesture-tracking', config=cfg)
 
     # Check if CUDA (GPU support) is available
     if torch.cuda.is_available():
