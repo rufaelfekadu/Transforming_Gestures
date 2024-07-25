@@ -141,7 +141,7 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions,lamb, devi
         input_t, _, input_f, _, _, label, gesture = batch
         input_t, input_f = input_t.to(device), input_f.to(device)
 
-
+        
         pred, z_t, z_f = model(input_t, input_f)
 
         optimiser.zero_grad()
