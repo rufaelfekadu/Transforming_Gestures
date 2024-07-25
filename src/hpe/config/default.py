@@ -12,7 +12,7 @@ _C.LOG_DIR = "logs/"
 # Model
 # -----------------------------------------------------------------------------
 _C.MODEL = CN()
-_C.MODEL.NAME = "vit"
+_C.MODEL.NAME = "emgnet"
 _C.MODEL.PROJ_DIM = 128
 _C.MODEL.NUM_CLASSES = 2
 _C.MODEL.IN_CHANNELS = 1
@@ -20,7 +20,8 @@ _C.MODEL.PATCH_SIZE = 2
 _C.MODEL.INPUT_SIZE = 4
 _C.MODEL.FRAMES = 200#*2
 _C.MODEL.FRAME_PATCH_SIZE = 4
-_C.MODEL.EMB_DROPOUT = 0.5
+_C.MODEL.IMAGE_SIZE = 4
+_C.MODEL.EMB_DROPOUT = 0#0.5
 _C.MODEL.OUTPUT_SIZE = 16
 
 _C.TRANSFORMER = CN()
@@ -30,7 +31,7 @@ _C.TRANSFORMER.NUM_HEADS = 4
 _C.TRANSFORMER.DIM_HEAD = 32
 _C.TRANSFORMER.MLP_DIM = 128
 _C.TRANSFORMER.ATT_DROPOUT = 0.25
-_C.TRANSFORMER.POOL = "mean"
+_C.TRANSFORMER.POOL = "cls"#"mean"
 
 # -----------------------------------------------------------------------------
 # Dataset
@@ -83,7 +84,7 @@ _C.SOLVER = CN()
 _C.SOLVER.OPTIMIZER = "adam"
 _C.SOLVER.LR = 1e-3
 _C.SOLVER.WEIGHT_DECAY = 0.0001
-
+_C.SOLVER.MOMENTUM = 0.9 # todo implement
 # scheduler
 _C.SOLVER.PATIENCE = 30
 
