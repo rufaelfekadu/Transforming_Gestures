@@ -68,9 +68,11 @@ class EmgDataset(Dataset):
         self.label = torch.tensor(self.label, dtype=torch.float32)
         self.gesture_class = torch.tensor(self.gesture_class, dtype=torch.long)
         self.gestures = torch.tensor(self.gestures, dtype=torch.long)
-
-        #  fft 
-        self.data_f = fft(self.data, dim=1).abs()
+        self.include_fft =  cfg.MODEL.NAME.lower() in {"emgnet"}
+        self.data_f=None
+        if self.include_fft:
+            #  fft
+            self.data_f = fft(self.data, dim=1).abs()
         # self.data_f = rfft(self.data, dim=1)
 
         if self.transform_c:
@@ -81,8 +83,10 @@ class EmgDataset(Dataset):
         if self.training_mode == 'pretrain':
             # time augmentations apply jitter augmentation
             self.aug1_t = self.transform_t(self.data).float()
-            # frequency augmentations 
-            self.aug1_f = self.transform_f(self.data_f).float()
+            # frequency augmentations
+            self.aug1_f=None
+            if self.include_fft:
+                self.aug1_f = self.transform_f(self.data_f).float()
         
         elif self.training_mode == 'classify':
             self.data = self.transform_c(self.data).float()
@@ -129,14 +133,20 @@ class EmgDataset(Dataset):
     
     def __getitem__(self, idx):
         if self.training_mode == 'pretrain':
-            return self.data[idx], self.aug1_t[idx], self.data_f[idx], \
+            data_f=None
+            if self.include_fft:
+                data_f=self.data_f[idx]
+            return self.data[idx], self.aug1_t[idx], data_f, \
                 self.aug1_f[idx], self.label[idx], self.gesture_class[idx],
     
         elif self.training_mode == 'classify':
             return self.data[idx], 0 , 0, \
                 0, 0, self.gesture_class[idx]
         else:
-            return self.data[idx], 0, self.data_f[idx], \
+            data_f=None
+            if self.include_fft:
+                data_f=self.data_f[idx]
+            return self.data[idx], 0, data_f, \
                 0, self.data_c[idx], self.label[idx], self.gesture_class[idx]
 
 
