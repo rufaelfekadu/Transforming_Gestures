@@ -1,5 +1,0 @@
-[submodule "src/hpe/models/ViViT-pytorch"]
-tpath = src/hpe/models/ViViT-pytorch
-turl = https://github.com/rishikksh20/ViViT-pytorch.git
-	path = src/hpe/models/ViViT-pytorch
-	url = https://github.com/rishikksh20/ViViT-pytorch.git
