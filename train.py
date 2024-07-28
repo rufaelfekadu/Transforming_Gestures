@@ -139,22 +139,29 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions,lamb, devi
 
     for batch in train_loader:
         input_t, _, input_f, _, _, label, gesture = batch
-        input_t, input_f = input_t.to(device), input_f.to(device)
-
+        input_f = input_f.to(device)
+        input_t = input_t.to(device)
+        label = label.to(device)
+        z_t, z_f=None,None
         if cfg.MODEL.NAME.lower() == "emgnet":
-            pred, z_t, z_f = model(input_t)
+            pred, z_t, z_f = model(input_t,input_f)
 
         elif cfg.MODEL.NAME.lower() == "vivit":
-            pred= model(input_t)
+            pred = model(input_t)
         else:
             raise AttributeError(f"Cannot find model named: {cfg.MODEL.NAME}")
         optimiser.zero_grad()
         label = label.to(device)
         # compute loss
         _, l_pred = criterions[0](pred, label)
-        l_tf = criterions[1](z_t, z_f)
-        l_total = l_pred + lamb * l_tf
-
+        l_tf = None
+        if z_f is not None and z_t is not None:
+            l_tf = criterions[1](z_t, z_f)
+            l_total = l_pred + lamb * l_tf
+        elif z_t is None and z_f is None:
+            l_total= l_pred
+        else:
+            raise ValueError(f"z_f ({type(z_f)}) and z_t ({type(z_t)})  type and are mismatch.")
         # optimisation
         l_total.backward()
         optimiser.step()
@@ -176,7 +183,10 @@ def test(model, loader, criterion, device='cpu'):
     with torch.no_grad():
         for batch in loader:
             input_t, _, input_f, _, _, label, gesture = batch
-            input_t, input_f, label = input_t.to(device), input_f.to(device), label.to(device)
+            input_f=input_f.to(device)
+            input_t=input_t.to(device)
+            label=label.to(device)
+
             if cfg.MODEL.NAME.lower() == "emgnet":
                 pred = model(input_t, input_f, return_proj=False)
 
@@ -193,7 +203,7 @@ def test(model, loader, criterion, device='cpu'):
                 B, C = pred.shape
                 label = label[:, -1, :]  # only take the last time step
                 label = label.view(B, -1)
-            data_angles_per_joint = torch.remainder((pred-label),180).mean(dim=0)
+            data_angles_per_joint = torch.abs((pred-label)).mean(dim=0)
             loss_angles.update(data_angles_per_joint)
         wandb.log({v: loss_angles.avg[i]  for i, v in enumerate(loader.dataset.dataset.label_columns)}, commit=False)
         wandb.log({'Total difference': torch.mean(loss_angles.avg)},commit=False)

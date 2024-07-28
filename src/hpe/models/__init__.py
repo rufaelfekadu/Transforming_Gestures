@@ -11,12 +11,12 @@ def build_model(cfg):
     if cfg.MODEL.NAME.lower() == "emgnet":
         return EmgNet(**args)
     elif cfg.MODEL.NAME.lower() == "vivit":
-        return ViViT(image_size=cfg.MODEL.IMAGE_SIZE,patch_size=cfg.MODEL.PATCH_SIZE,
-                     num_classes=cfg.MODEL.OUTPUT_SIZE,num_frames=cfg.MODEL.FRAMES,
-                     dim=cfg.TRANSFORMER.D_MODEL,heads=cfg.TRANSFORMER.NUM_HEADS,
-                     depth=cfg.TRANSFORMER.NUM_LAYERS,pool=cfg.TRANSFORMER.POOL,
-                     dim_head=cfg.TRANSFORMER.DIM_HEAD,dropout=cfg.TRANSFORMER.ATT_DROPOUT,
-                     emb_dropout=cfg.MODEL.EMB_DROPOUT,scale_dim=cfg.TRANSFORMER.MLP_DIM/cfg.TRANSFORMER.D_MODEL
+        return ViViT(image_size=cfg.MODEL.IMAGE_SIZE,patch_size=cfg.MODEL.PATCH_SIZE,\
+                     num_classes=cfg.MODEL.OUTPUT_SIZE,num_frames=cfg.MODEL.FRAMES,\
+                     dim=cfg.TRANSFORMER.D_MODEL,heads=cfg.TRANSFORMER.NUM_HEADS,\
+                     depth=cfg.TRANSFORMER.NUM_LAYERS,pool=cfg.TRANSFORMER.POOL,\
+                     dim_head=cfg.TRANSFORMER.DIM_HEAD,dropout=cfg.TRANSFORMER.ATT_DROPOUT,\
+                     emb_dropout=cfg.MODEL.EMB_DROPOUT,scale_dim=cfg.TRANSFORMER.MLP_DIM/cfg.TRANSFORMER.D_MODEL\
                      )
     else:
         raise AttributeError(f"Cannot find model named: {cfg.MODEL.NAME}")

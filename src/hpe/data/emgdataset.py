@@ -69,6 +69,7 @@ class EmgDataset(Dataset):
         self.gesture_class = torch.tensor(self.gesture_class, dtype=torch.long)
         self.gestures = torch.tensor(self.gestures, dtype=torch.long)
         self.include_fft =  cfg.MODEL.NAME.lower() in {"emgnet"}
+        print(f"include FFT {self.include_fft} while {cfg.MODEL.NAME}")
         self.data_f=None
         if self.include_fft:
             #  fft
@@ -133,17 +134,16 @@ class EmgDataset(Dataset):
     
     def __getitem__(self, idx):
         if self.training_mode == 'pretrain':
-            data_f=None
+            data_f=0
             if self.include_fft:
                 data_f=self.data_f[idx]
             return self.data[idx], self.aug1_t[idx], data_f, \
                 self.aug1_f[idx], self.label[idx], self.gesture_class[idx],
-    
         elif self.training_mode == 'classify':
             return self.data[idx], 0 , 0, \
                 0, 0, self.gesture_class[idx]
         else:
-            data_f=None
+            data_f=0
             if self.include_fft:
                 data_f=self.data_f[idx]
             return self.data[idx], 0, data_f, \
@@ -268,7 +268,7 @@ def build_dataloaders(cfg, pretrain=True):
             else:
                 fully_overlapped=False
     if not any_flag:
-        test_set = EmgDataset(cfg, test_dirs, training_mode='hpe', transforms=transforms)
+        test_set = EmgDataset(cfg, test_dirs, training_mode='hpe',   transforms = (transforms_t, transforms_f, transforms_c),pre_processing_transform=pre_processing_transform)
         print("test and train are not overlapped, great:)")
     elif not fully_overlapped:
         warnings.warn("train and test are partially overlapped which is not treated well!!!!")

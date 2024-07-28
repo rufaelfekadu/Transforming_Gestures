@@ -60,6 +60,8 @@ class AverageMeter:
         self.value = value
     
     def update(self, value):
+        if value is None:
+            return
         self.count +=1
         self.value = value
         if self.total is None:

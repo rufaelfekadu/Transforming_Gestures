@@ -3,7 +3,7 @@ from torch import nn, einsum
 import torch.nn.functional as F
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
-from module import Attention, PreNorm, FeedForward
+from .module import Attention, PreNorm, FeedForward
 import numpy as np
 
 
@@ -30,24 +30,25 @@ class ViViT(nn.Module):
     def __init__(self, image_size, patch_size, num_classes, num_frames, dim = 192, depth = 4, heads = 3, pool = 'cls', in_channels = 3, dim_head = 64, dropout = 0.,
                  emb_dropout = 0., scale_dim = 4, ):
         super().__init__()
-        
+        print(f'number { dim*scale_dim} dim {dim}, depth {depth}, heads {heads}, pool {pool}, in_channels {in_channels},emb_dropout {emb_dropout}, scale_dim {scale_dim},dropout {dropout},num_frames {num_frames},num_classes {num_classes},image_size{image_size}')
         assert pool in {'cls', 'mean'}, 'pool type must be either cls (cls token) or mean (mean pooling)'
 
 
         assert image_size % patch_size == 0, 'Image dimensions must be divisible by the patch size.'
         num_patches = (image_size // patch_size) ** 2
-        patch_dim = in_channels * patch_size ** 2
+        patch_dim = patch_size ** 2
         self.to_patch_embedding = nn.Sequential(
-            Rearrange('b t c (h p1) (w p2) -> b t (h w) (p1 p2 c)', p1 = patch_size, p2 = patch_size),
+            # Rearrange('b t c (h p1) (w p2) -> b t (h w) (p1 p2 c)', p1 = patch_size, p2 = patch_size),
+            Rearrange('b t (hw p1 p2) -> b t hw (p1 p2)',p1=patch_size, p2=patch_size),
             nn.Linear(patch_dim, dim),
         )
 
         self.pos_embedding = nn.Parameter(torch.randn(1, num_frames, num_patches + 1, dim))
         self.space_token = nn.Parameter(torch.randn(1, 1, dim))
-        self.space_transformer = Transformer(dim, depth, heads, dim_head, dim*scale_dim, dropout)
+        self.space_transformer = Transformer(dim, depth, heads, dim_head, (int)(dim*scale_dim), dropout)
 
         self.temporal_token = nn.Parameter(torch.randn(1, 1, dim))
-        self.temporal_transformer = Transformer(dim, depth, heads, dim_head, dim*scale_dim, dropout)
+        self.temporal_transformer = Transformer(dim, depth, heads, dim_head, (int)(dim*scale_dim), dropout)
 
         self.dropout = nn.Dropout(emb_dropout)
         self.pool = pool
