@@ -626,5 +626,9 @@
             "035/S1/P4",
             "028/S2/P4",
             "027/S2/P4"]
+    },
+    "expsimdelay": {
+        "train":["simulated/S1/P3"],
+        "test": ["simulated/S1/P3"]
     }
 }
