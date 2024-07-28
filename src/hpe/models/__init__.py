@@ -3,7 +3,7 @@ from .emgnet import EmgNet
 
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from src.hpe.models.vivit import ViViT
+from .vivit import ViViT
 def build_model(cfg):
     from hpe.config import  get_param
     args = get_param(cfg, 'MODEL')
