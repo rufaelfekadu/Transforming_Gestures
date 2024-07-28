@@ -170,6 +170,7 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions,lamb, devi
 
 def test(model, loader, criterion, device='cpu'):
     loss = AverageMeter()
+
     loss_angles = AverageMeter()
     model.eval()
     with torch.no_grad():
