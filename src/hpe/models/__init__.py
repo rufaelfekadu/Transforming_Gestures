@@ -2,8 +2,8 @@ from .transformer import make_vvit, VViT
 from .emgnet import EmgNet
 
 from torch.optim import Adam
-from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
-from .ViViT.vivit import ViViT
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from src.hpe.models.vivit import ViViT
 def build_model(cfg):
     from hpe.config import  get_param
     args = get_param(cfg, 'MODEL')
