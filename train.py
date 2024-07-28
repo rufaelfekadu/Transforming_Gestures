@@ -141,9 +141,13 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions,lamb, devi
         input_t, _, input_f, _, _, label, gesture = batch
         input_t, input_f = input_t.to(device), input_f.to(device)
 
-        
-        pred, z_t, z_f = model(input_t, input_f)
+        if cfg.MODEL.NAME.lower() == "emgnet":
+            pred, z_t, z_f = model(input_t)
 
+        elif cfg.MODEL.NAME.lower() == "vivit":
+            pred= model(input_t)
+        else:
+            raise AttributeError(f"Cannot find model named: {cfg.MODEL.NAME}")
         optimiser.zero_grad()
         label = label.to(device)
         # compute loss
@@ -171,9 +175,14 @@ def test(model, loader, criterion, device='cpu'):
     with torch.no_grad():
         for batch in loader:
             input_t, _, input_f, _, _, label, gesture = batch
-
             input_t, input_f, label = input_t.to(device), input_f.to(device), label.to(device)
-            pred = model(input_t, input_f, return_proj=False)
+            if cfg.MODEL.NAME.lower() == "emgnet":
+                pred = model(input_t, input_f, return_proj=False)
+
+            elif cfg.MODEL.NAME.lower() == "vivit":
+                pred = model(input_t)
+            else:
+                raise AttributeError(f"Cannot find model named: {cfg.MODEL.NAME}")
 
             l = criterion(pred, label)
 
