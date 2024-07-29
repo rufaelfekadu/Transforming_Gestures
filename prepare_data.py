@@ -57,12 +57,12 @@ def _filter_data(data: np.ndarray, notch_freq=50, fs=250, Q=30, low_freq=30 ) ->
         # Calculate the normalized frequency and design the notch filter for fundamental frequency
         w0 = 50
         b_notch, a_notch = iirnotch(w0, Q,fs=fs)
-        data = filtfilt(b_notch, a_notch, data, padtype='even')
+        data_p= filtfilt(b_notch, a_notch, data, padtype='even',axis=0)
 
         # Calculate the normalized frequency and design the notch filter for second harmonic
         w0 = 100
         b_notch, a_notch = iirnotch(w0, Q,fs=fs)
-        data = filtfilt(b_notch, a_notch, data, padtype='even')
+        data = filtfilt(b_notch, a_notch, data_p, padtype='even',axis=0)
 
         # Calculate the normalized frequency and design the highpass filter
         cutoff = low_freq
@@ -107,7 +107,7 @@ def _prepare_data( data_path, label_path,cfg, index=0, lock=None, event=None):
     results['label_columns'] = label_columns
 
     # normalise and filter the data
-    data[data_columns] = StandardScaler().fit_transform(data[data_columns])
+    # data[data_columns] = StandardScaler().fit_transform(data[data_columns])
     data[data_columns] = _filter_data(data[data_columns], fs=cfg.DATA.EMG.SAMPLING_RATE,low_freq=cfg.DATA.EMG.LOW_FREQ)
     data[data_columns] = StandardScaler().fit_transform(data[data_columns])
 
