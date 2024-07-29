@@ -143,13 +143,10 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions,lamb, devi
         input_t = input_t.to(device)
         label = label.to(device)
         z_t, z_f=None,None
-        if cfg.MODEL.NAME.lower() == "emgnet":
+        if train_loader.dataset.dataset.include_fft:
             pred, z_t, z_f = model(input_t,input_f)
-
-        elif cfg.MODEL.NAME.lower() == "vivit":
-            pred = model(input_t)
         else:
-            raise AttributeError(f"Cannot find model named: {cfg.MODEL.NAME}")
+            pred = model(input_t)
         optimiser.zero_grad()
         label = label.to(device)
         # compute loss
@@ -187,13 +184,10 @@ def test(model, loader, criterion, device='cpu'):
             input_t=input_t.to(device)
             label=label.to(device)
 
-            if cfg.MODEL.NAME.lower() == "emgnet":
+            if loader.dataset.dataset.include_fft:
                 pred = model(input_t, input_f, return_proj=False)
-
-            elif cfg.MODEL.NAME.lower() == "vivit":
-                pred = model(input_t)
             else:
-                raise AttributeError(f"Cannot find model named: {cfg.MODEL.NAME}")
+                pred = model(input_t)
 
             l = criterion(pred, label)
 

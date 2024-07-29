@@ -97,7 +97,7 @@ _C.SOLVER.SAVE_DIR = "output/"
 _C.SOLVER.PRETRAINED_PATH = "output/exp1"
 _C.SOLVER.RESUME = False
 
-_C.SOLVER.REDUCE_LR_PATIENCE = 3
+_C.SOLVER.REDUCE_LR_PATIENCE = 5
 _C.SOLVER.REDUCE_LR_FACTOR = 0.5
 
 # -----------------------------------------------------------------------------

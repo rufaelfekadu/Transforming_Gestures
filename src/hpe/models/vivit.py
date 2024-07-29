@@ -81,7 +81,34 @@ class ViViT(nn.Module):
 
         return self.mlp_head(x)
     
-    
+    def load_pretrained(self, path):
+
+        print(f'Loading pretrained model from {path}')
+        pretrained_dict = torch.load(path, map_location=torch.device('cpu'))['model_state_dict']
+        model_dict = self.state_dict()
+
+        pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+
+        model_dict.update(pretrained_dict)
+        self.load_state_dict(model_dict)
+        print('Pretrained model loaded')
+
+
+def make_vivit(cfg):
+    vvit = ViViT(image_size=cfg.MODEL.IMAGE_SIZE, patch_size=cfg.MODEL.PATCH_SIZE, \
+          num_classes=cfg.MODEL.OUTPUT_SIZE, num_frames=cfg.MODEL.FRAMES, \
+          dim=cfg.TRANSFORMER.D_MODEL, heads=cfg.TRANSFORMER.NUM_HEADS, \
+          depth=cfg.TRANSFORMER.NUM_LAYERS, pool=cfg.TRANSFORMER.POOL, \
+          dim_head=cfg.TRANSFORMER.DIM_HEAD, dropout=cfg.TRANSFORMER.ATT_DROPOUT, \
+          emb_dropout=cfg.MODEL.EMB_DROPOUT, scale_dim=cfg.TRANSFORMER.MLP_DIM / cfg.TRANSFORMER.D_MODEL \
+          )
+    return vvit
+
+def vis_atten(module, input, output):
+    global attn_before_softmax, attn_after_softmax
+    attn_before_softmax.append(input[0].detach().cpu())
+    attn_after_softmax.append(output.detach().cpu())
+
     
 
 if __name__ == "__main__":

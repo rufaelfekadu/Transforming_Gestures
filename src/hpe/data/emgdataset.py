@@ -12,6 +12,8 @@ from tqdm import tqdm
 from hpe.utils.data import read_dirs, train_test_gesture_split, strided_array, train_test_split_by_session
 from hpe.data.transforms import JitterTransform, FrequencyTranform, RMSTransform, NormalizeTransform
 
+INCLUDE_FFT_SET = {"emgnet","emgnet_new"}
+
 
 class EmgDataset(Dataset):
     def __init__(self, cfg, data_paths, training_mode='pretrain', transforms=(None, None, None),pre_processing_transform=None):
@@ -68,7 +70,7 @@ class EmgDataset(Dataset):
         self.label = torch.tensor(self.label, dtype=torch.float32)
         self.gesture_class = torch.tensor(self.gesture_class, dtype=torch.long)
         self.gestures = torch.tensor(self.gestures, dtype=torch.long)
-        self.include_fft =  cfg.MODEL.NAME.lower() in {"emgnet"}
+        self.include_fft = cfg.MODEL.NAME.lower() in INCLUDE_FFT_SET
         print(f"include FFT {self.include_fft} while {cfg.MODEL.NAME}")
         self.data_f=None
         if self.include_fft:
