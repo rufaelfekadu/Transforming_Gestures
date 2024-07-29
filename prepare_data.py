@@ -58,18 +58,18 @@ def _filter_data(data: np.ndarray, notch_freq=50, fs=250, Q=30, low_freq=30, ) -
         # Calculate the normalized frequency and design the notch filter
         w0 = notch_freq / (fs / 2)
         b_notch, a_notch = iirnotch(w0, Q)
+        data = filtfilt(b_notch, a_notch, data, padtype='even')
 
+        w0 = 2*notch_freq / (fs / 2)
+        b_notch, a_notch = iirnotch(w0, Q)
+        data = filtfilt(b_notch, a_notch, data, padtype='even')
         #calculate the normalized frequencies and design the highpass filter
         cutoff = low_freq / (fs / 2)
         sos = butter(4, cutoff, btype='highpass', output='sos')
 
         # apply filters using 'filtfilt' to avoid phase shift
         data = sosfiltfilt(sos, data, axis=0, padtype='even')
-        data = filtfilt(b_notch, a_notch, data, padtype='even')
-        # Calculate the normalized frequency and design the notch filter for the second harmonic frequency
-        w0 = 2*notch_freq / (fs / 2)
-        b_notch, a_notch = iirnotch(w0, Q)
-        data = filtfilt(b_notch, a_notch, data, padtype='even')
+
 
         return data
 
@@ -109,7 +109,7 @@ def _prepare_data( data_path, label_path,cfg, index=0, lock=None, event=None):
 
     # normalise and filter the data
     data[data_columns] = StandardScaler().fit_transform(data[data_columns])
-    data[data_columns] = _filter_data(data[data_columns], fs=cfg.DATA.EMG.SAMPLING_RATE,low_freq=20)
+    data[data_columns] = _filter_data(data[data_columns], fs=cfg.DATA.EMG.SAMPLING_RATE,low_freq=cfg.DATA.EMG.LOW_FREQ)
     data[data_columns] = StandardScaler().fit_transform(data[data_columns])
 
     #  merge the data
