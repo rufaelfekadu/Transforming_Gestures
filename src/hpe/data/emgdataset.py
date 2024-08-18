@@ -1,5 +1,4 @@
 import warnings
-
 import torch
 from torch.fft import fft, rfft
 from torch.utils.data import Dataset
@@ -9,7 +8,7 @@ import numpy as np
 import pandas as pd
 import os
 from tqdm import tqdm
-from hpe.utils.data import read_dirs, train_test_gesture_split, strided_array, train_test_split_by_session
+from hpe.utils.data import read_dirs, train_test_gesture_split, strided_array, train_test_split_by_session,read_file_secured
 from hpe.data.transforms import JitterTransform, FrequencyTranform, RMSTransform, NormalizeTransform
 
 INCLUDE_FFT_SET = {"emgnet","emgnet_new"}
@@ -27,22 +26,15 @@ class EmgDataset(Dataset):
         merged_data = []
         print(npz_files)
         for i, np_file in tqdm(enumerate(npz_files), desc='Loading data'):
-            # file_name = ".npz"
-            # np_file = os.path.splitext(np_file)[0] + file_name
-            if os.path.isfile(np_file):
-                # load dataset
-                loaded = np.load(np_file,  allow_pickle=True)
-                data = {key: loaded[key] for key in loaded.files}
-                data_data = data['data']
-                if pre_processing_transform:
-                    data_data[:,0:len(data['data_columns'])] = pre_processing_transform(data_data[:,0:len(data['data_columns'])])
-                d = self.discritise_data(data_data, seq_len=self.seq_len, stride=self.stride)
-                merged_data.append(d)
-            else:
-                # skip and remove merged data at index i
-                print(f'{np_file} not found')
+            if not os.path.isfile(np_file):
+                warnings.warn(f'{np_file} not found')
                 continue
-
+            data = read_file_secured(np_file)
+            data_data = data['data']
+            if pre_processing_transform:
+                data_data[:,0:len(data['data_columns'])] = pre_processing_transform(data_data[:,0:len(data['data_columns'])])
+            d = self.discritise_data(data_data, seq_len=self.seq_len, stride=self.stride)
+            merged_data.append(d)
         if len(merged_data) == 0:
             raise FileNotFoundError(f'No data found in {cfg.DATA.PATH}')
             # return
@@ -82,7 +74,7 @@ class EmgDataset(Dataset):
             self.data_c = self.transform_c(self.data).float()
         else:
             self.data_c = self.data
-        
+
         if self.training_mode == 'pretrain':
             # time augmentations apply jitter augmentation
             self.aug1_t = self.transform_t(self.data).float()
@@ -90,7 +82,7 @@ class EmgDataset(Dataset):
             self.aug1_f=None
             if self.include_fft:
                 self.aug1_f = self.transform_f(self.data_f).float()
-        
+
         elif self.training_mode == 'classify':
             self.data = self.transform_c(self.data).float()
 
@@ -259,8 +251,9 @@ def build_dataloaders(cfg, pretrain=True):
     unique_gestures = np.unique(train_set.gesture_mapping_class)
     test_gestures = [i+f'_{rep}' for i in unique_gestures]
 
-    train_set, val_set, test_set = train_test_gesture_split(train_set, test_gestures=test_gestures)
+
     # train_set, val_set, test_set = train_test_split_by_session(train_set)
+    train_set, val_set, test_set = train_test_gesture_split(train_set, test_gestures=test_gestures)
     any_flag=False
     fully_overlapped=True
     for i in train_dirs:
@@ -274,6 +267,7 @@ def build_dataloaders(cfg, pretrain=True):
         print("test and train are not overlapped, great:)")
     elif not fully_overlapped:
         warnings.warn("train and test are partially overlapped which is not treated well!!!!")
+
     # test_set_2 = EmgDataset(cfg, test_dirs, training_mode='hpe', transforms=transforms)
     # _,_, test_set_2 = train_test_gesture_split(test_set_2, test_gestures=test_gestures)
     # _,_, test_set_2 = train_test_split_by_session(test_set_2)

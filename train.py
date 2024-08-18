@@ -71,10 +71,10 @@ def main(cfg):
     cfg.freeze()
 
     # train
-    train(cfg, model, dataloaders['train'], dataloaders['val'], optimiser, scheduler, criterions, logger, wandb, device)
+    train(cfg, model, dataloaders['train'], dataloaders['val'],optimiser, scheduler, criterions, logger, wandb, device)
 
     # test
-    test_loss = test(model, dataloaders['test'], criterions[0], device)
+    test_loss = test(model, dataloaders['test'], criterions[0], device,is_test=True)
     logger.info(tabulate([[test_loss]], headers=['Test Loss']))
 
     if cfg.VIS.SAVE_TEST_SET:
@@ -85,7 +85,7 @@ def main(cfg):
     wandb.finish()  # Close the wandb run
 
 
-def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logger, wandb, device='cpu'):
+def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logger, wandb, device='cpu',test_set=None):
     epochs = cfg.SOLVER.NUM_EPOCHS
     best_val_loss = float('inf')
     epoch_no_improve = 0
@@ -125,7 +125,8 @@ def train(cfg, model, train_set, val_set, optimiser, scheduler, criterions, logg
             if epoch_no_improve > cfg.SOLVER.PATIENCE:
                 logger.info("Early stopping at epoch {}".format(i))
                 break
-
+        if test_set:
+            test(model, test_set, criterions[0], device, is_test=True)
         # scheduler.step(val_metrics.avg)
 
 
@@ -172,7 +173,7 @@ def train_epoch(model, train_loader, optimiser, scheduler, criterions,lamb, devi
     return total_loss, tf_loss, pred_loss
 
 
-def test(model, loader, criterion, device='cpu'):
+def test(model, loader, criterion, device='cpu',is_test=False):
     loss = AverageMeter()
 
     loss_angles = AverageMeter()
@@ -200,7 +201,10 @@ def test(model, loader, criterion, device='cpu'):
             data_angles_per_joint = torch.abs((pred-label)).mean(dim=0)
             loss_angles.update(data_angles_per_joint)
         wandb.log({v: loss_angles.avg[i]  for i, v in enumerate(loader.dataset.dataset.label_columns)}, commit=False)
-        wandb.log({'Total difference': torch.mean(loss_angles.avg)},commit=False)
+        condition_sting="Validation:"
+        if is_test:
+            condition_sting="Test:"
+        wandb.log({f'{condition_sting} Total difference': torch.mean(loss_angles.avg)},commit=False)
     return loss
 
 

@@ -16,8 +16,9 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 import numpy as np
-
-
+import fcntl
+import random
+import errno
 class ExpTimes:
     refernce_time = datetime.strptime('2023-10-02 14:59:55.627000', '%Y-%m-%d %H:%M:%S.%f')
     manus_start_time = datetime.strptime('2023-10-02 14:59:20.799000', '%Y-%m-%d %H:%M:%S.%f')
@@ -93,6 +94,38 @@ class StridedArrayConcatenator:
 
     def __repr__(self):
         return f"StridedArrayConcatenator(shape={self.shape})"
+
+
+def read_file_secured(np_file: str, max_attempts: int = 50, base_delay: float = 1.0):
+    for attempt in range(max_attempts):
+        with open(np_file, 'rb') as file:
+            try:
+                # Attempt to acquire an exclusive lock (write lock)
+                fcntl.flock(file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+                # File successfully locked, proceed with loading
+                loaded = np.load(np_file, allow_pickle=True)
+                data = {key: loaded[key] for key in loaded.files}
+
+                # Release the lock
+                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+
+                return data
+
+            except IOError as e:
+                if e.errno != errno.EWOULDBLOCK:
+                    # If it's not a "resource temporarily unavailable" error, re-raise
+                    raise
+
+                if attempt < max_attempts - 1:
+                    # Calculate delay with exponential backoff and some randomness
+                    delay = (base_delay * 2 ** attempt) + (random.random() * 0.1)
+                    print(
+                        f"File {np_file} is locked. Retrying in {delay:.2f} seconds. (Attempt {attempt + 1}/{max_attempts})")
+                    time.sleep(delay)
+                else:
+                    print(f"Failed to acquire lock for {np_file} after {max_attempts} attempts. Skipping.")
+    return None
 def strided_array(arr, window_size, stride):
     N, C = arr.shape    
     shape = ((N - window_size)//stride + 1, window_size, C)

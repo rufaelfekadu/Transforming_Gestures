@@ -38,8 +38,8 @@ class ViViT(nn.Module):
         num_patches = (image_size // patch_size) ** 2
         patch_dim = patch_size ** 2
         self.to_patch_embedding = nn.Sequential(
-            # Rearrange('b t c (h p1) (w p2) -> b t (h w) (p1 p2 c)', p1 = patch_size, p2 = patch_size),
-            Rearrange('b t (hw p1 p2) -> b t hw (p1 p2)',p1=patch_size, p2=patch_size),
+            Rearrange('b t (h p1) (w p2) -> b t (h w) (p1 p2)', p1 = patch_size, p2 = patch_size),
+            # Rearrange('b t (hw p1 p2) -> b t hw (p1 p2)',p1=patch_size, p2=patch_size),
             nn.Linear(patch_dim, dim),
         )
 

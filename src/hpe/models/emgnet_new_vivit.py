@@ -69,7 +69,8 @@ class EmgNetNew(nn.Module):
     def forward(self, x_t, x_f, return_proj=True):
 
         # x_t, x_f = x_t, x_f.permute(0, 2, 1) # (B, C, S)
-
+        x_t = self.reshape_channels_electrodes(x_t)
+        x_f = self.reshape_channels_electrodes(x_f)
         h_t = self.encoder_t(x_t)
         h_f = self.encoder_f(x_f)
 
@@ -84,7 +85,21 @@ class EmgNetNew(nn.Module):
             return out, z_t, z_f
         else:
             return out
-
+    def reshape_channels_electrodes(self,data,xtrodes_order=False):
+        if xtrodes_order:
+            raise NotImplemented
+        else:
+            # Define the new order as a tensor subtracting 1 for zero-based index.
+            new_order = torch.tensor([
+                3, 6, 11, 14,  # First row of the new matrix
+                2, 5, 12, 15,  # Second row of the new matrix
+                1, 4, 13, 16,  # Third row of the new matrix
+                8, 7, 10, 9  # Fourth row of the new matrix
+            ]) - 1  # Convert to zero-based index by subtracting 1
+            B,W,C = data.shape
+            # Reshape and reorder the tensor
+            reshaped_data = data[..., new_order].reshape(B,W, 4, 4)
+            return reshaped_data
     def load_pretrained(self, path):
 
         print(f'Loading pretrained model from {path}')

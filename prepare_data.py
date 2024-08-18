@@ -53,7 +53,7 @@ def merge_data(emg_data, leap_data):
 
     return data
 
-def _filter_data(data: np.ndarray, notch_freq=50, fs=250, Q=30, low_freq=30 ) -> np.ndarray:
+def _filter_data(data: np.ndarray, fs=250, Q=30, low_freq=30 ) -> np.ndarray:
         # Calculate the normalized frequency and design the notch filter for fundamental frequency
         w0 = 50
         b_notch, a_notch = iirnotch(w0, Q,fs=fs)
@@ -68,7 +68,7 @@ def _filter_data(data: np.ndarray, notch_freq=50, fs=250, Q=30, low_freq=30 ) ->
         cutoff = low_freq
         sos = butter(4, cutoff, btype='highpass', output='sos',fs=fs)
 
-        # Apply highpass filter using 'sosfiltfilt' to avoid phase shift
+        # Apply highpass filter using 'sosfiltfilt' to avoid phase shiftwa
         data = sosfiltfilt(sos, data, axis=0, padtype='even')
         return data
 
